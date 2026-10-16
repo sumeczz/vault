@@ -1483,7 +1483,7 @@ function ImpactOverview({ content }: { content: GameContentCatalogs }) {
                 <tr key={a.id} className="border-t border-border/60">
                   <td className="py-1 pr-1">
                     <span className="block truncate">{a.names[0] || a.id}</span>
-                    <span className="block text-[10px] text-subtle">{ABILITY_IMPACT[a.kind] ?? a.kind}</span>
+                    <span className="block text-[11px] text-subtle">{ABILITY_IMPACT[a.kind] ?? a.kind}</span>
                   </td>
                   <td className="py-1 text-right">
                     {Math.round(a.damage[0])}–{Math.round(a.damage[1])} →{" "}
@@ -1508,9 +1508,9 @@ function ImpactOverview({ content }: { content: GameContentCatalogs }) {
                   <tr key={p.id} className="border-t border-border/60">
                     <td className="py-1 pr-1">
                       <span className="block truncate">{p.name || p.id}</span>
-                      <span className="block text-[10px] text-subtle">{PASSIVE_IMPACT[p.kind]?.use ?? p.kind}</span>
+                      <span className="block text-[11px] text-subtle">{PASSIVE_IMPACT[p.kind]?.use ?? p.kind}</span>
                       {mismatch ? (
-                        <span className="block text-[10px] text-danger">
+                        <span className="block text-[11px] text-danger">
                           ✕ formát má být {expected}, je {p.valueFormat}
                         </span>
                       ) : null}

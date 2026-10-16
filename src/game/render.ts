@@ -288,9 +288,10 @@ function drawEnemy(ctx: CanvasRenderingContext2D, e: Enemy) {
       ctx.rotate(ang);
       ctx.fillRect(-e.r, -e.r * 0.7, e.r * 2, e.r * 1.4);
       ctx.strokeRect(-e.r, -e.r * 0.7, e.r * 2, e.r * 1.4);
-      ctx.fillStyle = col;
-      ctx.fillRect(e.r * 0.5, -2.5, e.r + 3, 5);
-      ctx.restore();
+  ctx.fillStyle = col;
+  ctx.fillRect(e.r * 0.5, -2.5, e.r + 3, 5);
+  ctx.restore();
+  return;
       break;
     case "ostrostrelec":
       ctx.beginPath();
@@ -749,6 +750,14 @@ export function renderRun(ctx: CanvasRenderingContext2D, run: Run, viewW: number
   ctx.beginPath();
   ctx.arc(Math.cos(pl.aim) * 5, Math.sin(pl.aim) * 5, 3.2, 0, Math.PI * 2);
   ctx.fill();
+  // HP bar nad postavou hráče.
+  if (pl.hp < pl.maxHp || pl.hp > 0) {
+    const bw = PLAYER_R * 2.2;
+    ctx.fillStyle = "rgba(10,10,11,0.7)";
+    ctx.fillRect(-bw / 2, -PLAYER_R - 10, bw, 3);
+    ctx.fillStyle = "#c45c3e";
+    ctx.fillRect(-bw / 2, -PLAYER_R - 10, bw * (pl.hp / pl.maxHp), 3);
+  }
   ctx.restore();
 
   const wpn = run.weapons[pl.slot];

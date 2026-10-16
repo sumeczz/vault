@@ -499,3 +499,33 @@ legendární/mýtická 3; unikátní relikvie 0 — neupravují se).
   denní/týdenní výzvy mají vždy služební pistoli (fair play).
 - Nový mod: nový záznam v `MOD_DEFS` + případně chování do `WEAPON_BEHAVIORS`.
   Nic víc — generování, loot, šrot i UI si ho najdou samy.
+
+## 24. Progrese konkrétní postavy
+
+Účetní postup je výhradně `bestLevel` (§1–§2) a řídí Cestu. Bojová XP z běhu
+se připisují vybrané postavě, nikoli profilu. Každá postava má vlastní level,
+XP, talentové body a (později) výbavu. Při porážce i banknutí se přidělí již
+získaná XP; profilové statistiky, rekordy a checkpointy zůstávají oddělené.
+
+Návrhová křivka, talenty, limity, migrace starých uložených XP a pořadí zavedení
+jsou popsány v `docs/character-progression-and-armory.md` §§2–3, 7–8.
+Implementace nesmí odvozovat unlock na Cestě z levelu postavy.
+
+## 25. Výroba a trvalé úpravy zbraní
+
+Vyrobená zbraň patří zvolené postavě a lze ji vybrat jako startovní výbavu
+před běžným během; denní a týdenní výzvy používají vždy služební pistoli.
+Kovárna/crafting se odemyká při profilovém LVL 6 a nesmí se řídit levelem
+postavy. Běžný recept stojí 8 fragmentů, 3 slitiny a 40 šrotu; pokročilý
+12 fragmentů, 4 slitiny, 2 jádra a 80 šrotu. Fragmenty archetypů, šrot, slitiny, energetická jádra a
+elementární katalyzátory mají odlišné zdroje; žádný základní recept není
+uzamčen za jediný náhodný drop. Elity a bossové přispívají garantovanou
+materiálovou odměnou.
+
+Výroba ani úpravy nemění profilové odemykání (§1–§2). Trvalé komponenty
+vyrobených zbraní jsou oddělené od běhových modů a blueprint ranků dle §23.
+Dropy získané během běhu se do postavy uloží až při porážce nebo banknutí.
+Talenty se nakupují před během; reset vrací body za 30 šrotu + 2 slitiny a
+cena každým resetem stoupá o 20 šrotu + 1 slitinu.
+Podrobné tabulky zdrojů, ceny a stav implementace jsou v
+`docs/character-progression-and-armory.md` §§3–8.

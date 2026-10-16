@@ -1,7 +1,9 @@
+import { awardCharacterXp } from "./characters";
+
 const KEY = "vaultbreak-v1";
 
 export type SaveData = {
-  version: 3;
+  version: 6;
   bestRooms: number;
   bestKills: number;
   bestTime: number;
@@ -15,10 +17,22 @@ export type SaveData = {
   totalKills: number;
   totalScrap: number;
   bossesKilled: number;
+  /** Celkový odehraný čas (s). */
+  totalPlayTime: number;
+  /** Celkem vypálených střel (všechny běhy). */
+  totalShotsFired: number;
+  /** Celkem trefených střel (všechny běhy). */
+  totalShotsHit: number;
+  /** Celkem způsobeného poškození (všechny běhy). */
+  totalDmgDealt: number;
+  /** Celkem utrženého poškození (všechny běhy). */
+  totalDmgTaken: number;
+  /** Nejvyšší dosažená místnost / vlna v jednom běhu. */
+  bestRoom: number;
 };
 
 const EMPTY: SaveData = {
-  version: 3,
+  version: 6,
   bestRooms: 0,
   bestKills: 0,
   bestTime: 0,
@@ -29,22 +43,37 @@ const EMPTY: SaveData = {
   totalKills: 0,
   totalScrap: 0,
   bossesKilled: 0,
+  totalPlayTime: 0,
+  totalShotsFired: 0,
+  totalShotsHit: 0,
+  totalDmgDealt: 0,
+  totalDmgTaken: 0,
+  bestRoom: 0,
 };
 
 export function loadSave(): SaveData {
   try {
     const raw = localStorage.getItem(KEY);
     if (!raw) return { ...EMPTY };
-    const parsed = JSON.parse(raw) as Partial<SaveData>;
+    const parsed = JSON.parse(raw) as Partial<SaveData> & { level?: number; xp?: number; xpTotal?: number };
+    Reflect.deleteProperty(parsed, "level");
+    Reflect.deleteProperty(parsed, "xp");
+    Reflect.deleteProperty(parsed, "xpTotal");
     return {
       ...EMPTY,
       ...parsed,
-      version: 3,
+      version: 6,
       maxSector: Math.max(1, Math.floor(parsed.maxSector ?? 1)),
       bestLevel: Math.max(0, Math.floor(parsed.bestLevel ?? parsed.bestRooms ?? 0)),
+      bestRoom: Math.max(0, Math.floor(parsed.bestRoom ?? parsed.bestRooms ?? 0)),
       totalKills: Math.max(0, Math.floor(parsed.totalKills ?? 0)),
       totalScrap: Math.max(0, Math.floor(parsed.totalScrap ?? 0)),
       bossesKilled: Math.max(0, Math.floor(parsed.bossesKilled ?? 0)),
+      totalPlayTime: Math.max(0, Math.floor(parsed.totalPlayTime ?? 0)),
+      totalShotsFired: Math.max(0, Math.floor(parsed.totalShotsFired ?? 0)),
+      totalShotsHit: Math.max(0, Math.floor(parsed.totalShotsHit ?? 0)),
+      totalDmgDealt: Math.max(0, Math.floor(parsed.totalDmgDealt ?? 0)),
+      totalDmgTaken: Math.max(0, Math.floor(parsed.totalDmgTaken ?? 0)),
     };
   } catch {
     return { ...EMPTY };
@@ -66,11 +95,18 @@ export function recordRun(
   seed: string,
   scrapEarned = 0,
   bossesKilled = 0,
+  shotsFired = 0,
+  shotsHit = 0,
+  dmgDealt = 0,
+  dmgTaken = 0,
+  roomReached = 0,
+  xpEarned = 0,
 ): SaveData {
   const prev = loadSave();
+  awardCharacterXp(xpEarned);
   const next: SaveData = {
-    version: 3,
-    bestRooms: Math.max(prev.bestRooms, level),
+    version: 6,
+    bestRooms: Math.max(prev.bestRooms, level, roomReached),
     bestKills: Math.max(prev.bestKills, kills),
     bestTime: level >= prev.bestRooms ? Math.max(prev.bestTime, time) : prev.bestTime,
     runs: prev.runs + 1,
@@ -80,6 +116,12 @@ export function recordRun(
     totalKills: prev.totalKills + Math.max(0, Math.floor(kills)),
     totalScrap: prev.totalScrap + Math.max(0, Math.floor(scrapEarned)),
     bossesKilled: prev.bossesKilled + Math.max(0, Math.floor(bossesKilled)),
+    totalPlayTime: prev.totalPlayTime + Math.max(0, Math.floor(time)),
+    totalShotsFired: prev.totalShotsFired + Math.max(0, Math.floor(shotsFired)),
+    totalShotsHit: prev.totalShotsHit + Math.max(0, Math.floor(shotsHit)),
+    totalDmgDealt: prev.totalDmgDealt + Math.max(0, Math.floor(dmgDealt)),
+    totalDmgTaken: prev.totalDmgTaken + Math.max(0, Math.floor(dmgTaken)),
+    bestRoom: Math.max(prev.bestRoom, roomReached),
   };
   writeSave(next);
   return next;
@@ -102,6 +144,7 @@ export function unlockSector(sector1Based: number): SaveData {
  */
 export const PROGRESS_KEYS = [
   "vaultbreak-v1",
+  "vaultbreak.characters.v1",
   "vaultbreak.codex.v1",
   "vaultbreak.achievements.v1",
   "vaultbreak.badges.v1",

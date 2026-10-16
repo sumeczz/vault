@@ -44,6 +44,30 @@ import { Run, WAVE_BREAK } from "./sim.ts";
 import { ACHIEVEMENTS, earnedAchievements, loadAchievements, profileStats, unlockAchievements } from "./achievements.ts";
 import { GLOSSARY, glossaryDef } from "./glossary.ts";
 import { CODEX_CATEGORIES, SYNERGIES, codexBonus, codexEntries, codexProgress, loadCodex } from "./codex.ts";
+import {
+  applyCharacterXp,
+  CHARACTER_STORAGE_KEY,
+  grantCharacterRunMaterials,
+  loadActiveCharacter,
+  loadCharacters,
+  purchaseCharacterTalent,
+  respecCharacterTalents,
+  talentRespecCost,
+  writeCharacters,
+  xpForNextLevel,
+} from "./characters.ts";
+import {
+  craftCharacterWeapon,
+  rollCharacterMaterialDrop,
+  selectCraftedStarter,
+  upgradeCharacterWeaponComponent,
+  weaponRecipe,
+} from "./character-armory.ts";
+import {
+  applyWeaponComponents,
+  normalizeWeaponComponents,
+  weaponComponentCost,
+} from "./weapon-components.ts";
 import { loadSave, recordRun, resetProgress } from "./save.ts";
 import { loadBoard, recordBoard } from "./leaderboard.ts";
 import { ABILITY_VOICE } from "./audio.ts";
@@ -774,6 +798,8 @@ describe("pauza pred vlnou", () => {
     // Najdi mistnost se 2+ vlnami (vlny rostou s urovni i pozici v sektoru)
     for (let i = 0; i < 12 && run.room.waves.length < 2; i++) run.nextRoom();
     assert.ok(run.room.waves.length >= 2, "zadna mistnost nema 2 vlny");
+    // Prvni vlna ceká na potvrzeni hrace (Start vlna) — simuluj kliknuti
+    run.startWave();
     // Nech spawnout prvni vlnu (delay 0.7)
     for (let i = 0; i < 20 && !run.enemies.some((e) => e.active); i++) {
       run.update(0.05, NEUTRAL_ACTIONS, 800, 600);
@@ -932,7 +958,7 @@ describe("achievementy", () => {
   });
 });
 
-describe("save v3", () => {
+describe("save v6", () => {
   it("migruje starsi savy a scita kumulativni statistiky", () => {
     memoryStorage();
     localStorage.setItem(
@@ -940,12 +966,12 @@ describe("save v3", () => {
       JSON.stringify({ version: 2, bestRooms: 5, bestKills: 10, bestTime: 60, runs: 2, lastSeed: "X", bestLevel: 5, maxSector: 2 }),
     );
     const migrated = loadSave();
-    assert.equal(migrated.version, 3);
+    assert.equal(migrated.version, 6);
     assert.equal(migrated.totalKills, 0);
     assert.equal(migrated.totalScrap, 0);
     assert.equal(migrated.bossesKilled, 0);
     const next = recordRun(10, 25, 60, "SEED", 40, 2);
-    assert.equal(next.version, 3);
+    assert.equal(next.version, 6);
     assert.equal(next.runs, 3);
     assert.equal(next.bestLevel, 10);
     assert.equal(next.totalKills, 25);
@@ -953,6 +979,276 @@ describe("save v3", () => {
     assert.equal(next.bossesKilled, 2);
     assert.deepEqual(loadSave(), next);
     assert.equal(profileStats(next, 7).codexCount, 7);
+  });
+
+  it("xp leveluje postavu podle progresivniho vzorce", () => {
+    memoryStorage();
+    assert.equal(xpForNextLevel(1), 100);
+    assert.equal(xpForNextLevel(2), 112);
+    assert.ok(xpForNextLevel(30) > xpForNextLevel(1));
+    const leveled = applyCharacterXp(1, 212);
+    assert.equal(leveled.level, 3);
+    assert.equal(leveled.xp, 0);
+    assert.equal(leveled.levelsGained, 2);
+    const same = applyCharacterXp(1, 50);
+    assert.equal(same.level, 1);
+    assert.equal(same.xp, 50);
+    assert.equal(same.levelsGained, 0);
+    assert.deepEqual(applyCharacterXp(30, 10_000), { level: 30, xp: 0, levelsGained: 0 });
+  });
+
+  it("presune stara profilova XP do postavy bez zmeny profiloveho unlocku", () => {
+    memoryStorage();
+    localStorage.setItem(
+      "vaultbreak-v1",
+      JSON.stringify({ version: 5, bestLevel: 7, level: 4, xp: 55, xpTotal: 555 }),
+    );
+    const character = loadActiveCharacter();
+    assert.equal(character.level, 4);
+    assert.equal(character.xp, 55);
+    assert.equal(character.xpTotal, 555);
+    assert.equal(loadSave().bestLevel, 7);
+    assert.equal(recordRun(2, 1, 10, "MIGRATE").bestLevel, 7);
+    assert.equal(loadActiveCharacter().talentPoints, 0);
+    assert.ok(localStorage.getItem(CHARACTER_STORAGE_KEY));
+  });
+
+  it("pripise XP za beh postave a nezvysi bestLevel profilu", () => {
+    memoryStorage();
+    const next = recordRun(2, 1, 10, "XP", 0, 0, 0, 0, 0, 0, 2, 250);
+    const character = loadActiveCharacter();
+    assert.equal(character.level, 3);
+    assert.equal(character.xp, 38);
+    assert.equal(character.talentPoints, 2);
+    assert.equal(next.bestLevel, 2);
+  });
+});
+
+describe("talenty, materiály a výroba", () => {
+  it("odemkne talent podle levelu, utratí bod a respec vrátí ranky za rostoucí cenu", () => {
+    memoryStorage();
+    const save = loadCharacters();
+    save.characters[0] = {
+      ...save.characters[0]!,
+      level: 5,
+      talentPoints: 2,
+      materials: { scrap: 100, alloys: 5, cores: 0, catalysts: {}, fragments: {} },
+    };
+    writeCharacters(save);
+
+    const first = purchaseCharacterTalent("ballistics");
+    assert.equal(first.ok, true);
+    assert.equal(first.character.talents.ballistics, 1);
+    assert.equal(first.character.talentPoints, 1);
+    const second = purchaseCharacterTalent("ballistics");
+    assert.equal(second.ok, true);
+    assert.equal(second.character.talents.ballistics, 2);
+    assert.deepEqual(talentRespecCost(0), { scrap: 30, alloys: 2 });
+
+    const reset = respecCharacterTalents();
+    assert.equal(reset.ok, true);
+    assert.equal(reset.character.talents.ballistics, 0);
+    assert.equal(reset.character.talentPoints, 2);
+    assert.equal(reset.character.materials.scrap, 70);
+    assert.equal(reset.character.materials.alloys, 3);
+    assert.equal(reset.character.respecCount, 1);
+    assert.deepEqual(talentRespecCost(1), { scrap: 50, alloys: 3 });
+  });
+
+  it("zablokuje další stupeň talentu před požadovaným levelem", () => {
+    memoryStorage();
+    const save = loadCharacters();
+    save.characters[0] = { ...save.characters[0]!, level: 4, talentPoints: 2 };
+    writeCharacters(save);
+    assert.equal(purchaseCharacterTalent("vitality").ok, true);
+    const nextRank = purchaseCharacterTalent("vitality");
+    assert.equal(nextRank.ok, false);
+    assert.match(nextRank.message, /levelu 5/);
+  });
+
+  it("nepřítel, elita a boss dávají zdroje podle tabulek a garantované zásilky", () => {
+    const regular = rollCharacterMaterialDrop(() => 0, "grunt", {
+      elite: false, boss: false, sector: 1, forge: false, lab: false, scavenging: 0,
+    });
+    assert.equal(regular.fragments.pistol, 1);
+    assert.equal(regular.scrap, 2);
+
+    const elite = rollCharacterMaterialDrop(() => 0, "jiskra", {
+      elite: true, boss: false, sector: 2, forge: false, lab: true, scavenging: 0,
+    });
+    assert.equal(elite.fragments.arc, 1);
+    assert.equal(elite.cores, 1);
+    assert.equal(elite.catalysts.shock, 1);
+
+    const boss = rollCharacterMaterialDrop(() => 0, "boss", {
+      elite: false, boss: true, sector: 1, forge: false, lab: false, scavenging: 0,
+    });
+    assert.equal(boss.alloys, 2);
+    assert.equal(boss.cores, 1);
+    assert.equal(Object.values(boss.fragments).reduce((total, count) => total + (count ?? 0), 0), 3);
+  });
+
+  it("vyrobí zbraň pouze při odemčené Kovárně a dostatku zdrojů", () => {
+    memoryStorage();
+    const save = loadCharacters();
+    save.characters[0] = {
+      ...save.characters[0]!,
+      materials: {
+        scrap: 40,
+        alloys: 3,
+        cores: 0,
+        catalysts: {},
+        fragments: { pistol: 8 },
+      },
+    };
+    writeCharacters(save);
+    assert.equal(craftCharacterWeapon("pistol", false).ok, false);
+    const crafted = craftCharacterWeapon("pistol", true);
+    assert.equal(crafted.ok, true);
+    assert.deepEqual(crafted.character.craftedWeapons, ["pistol"]);
+    assert.equal(crafted.character.materials.scrap, 0);
+    assert.equal(crafted.character.materials.fragments.pistol, 0);
+    assert.equal(selectCraftedStarter("pistol").ok, true);
+    assert.equal(loadActiveCharacter().starterArchetype, "pistol");
+    assert.deepEqual(weaponRecipe("sniper"), { fragments: 12, alloys: 4, cores: 2, scrap: 80 });
+  });
+
+  it("normalizuje komponenty jen pro vlastněné zbraně a správné sloty", () => {
+    assert.deepEqual(
+      normalizeWeaponComponents({
+        pistol: {
+          barrel: { id: "mag-extended", rank: 1 },
+          magazine: { id: "mag-extended", rank: 2 },
+          core: { id: "core-fire", rank: 4 },
+        },
+        smg: { barrel: { id: "barrel-heavy", rank: 1 } },
+      }, ["pistol"]),
+      { pistol: { magazine: { id: "mag-extended", rank: 2 } } },
+    );
+  });
+
+  it("instaluje komponenty jen ve Kovárně a spotřebuje materiály bez vrácení při výměně", () => {
+    memoryStorage();
+    const save = loadCharacters();
+    save.characters[0] = {
+      ...save.characters[0]!,
+      craftedWeapons: ["pistol"],
+      materials: { scrap: 50, alloys: 4, cores: 0, catalysts: {}, fragments: {} },
+    };
+    writeCharacters(save);
+
+    assert.equal(upgradeCharacterWeaponComponent("pistol", "barrel-precision", false).ok, false);
+    const installed = upgradeCharacterWeaponComponent("pistol", "barrel-precision", true);
+    assert.equal(installed.ok, true);
+    assert.match(installed.message, /slotu hlavně/);
+    assert.equal(installed.character.materials.scrap, 30);
+    assert.equal(installed.character.materials.alloys, 2);
+    assert.deepEqual(installed.character.weaponComponents.pistol?.barrel, {
+      id: "barrel-precision",
+      rank: 1,
+    });
+
+    const replaced = upgradeCharacterWeaponComponent("pistol", "barrel-long-range", true);
+    assert.equal(replaced.ok, true);
+    assert.equal(replaced.character.materials.scrap, 10);
+    assert.equal(replaced.character.materials.alloys, 0);
+    assert.deepEqual(replaced.character.weaponComponents.pistol?.barrel, {
+      id: "barrel-long-range",
+      rank: 1,
+    });
+    assert.deepEqual(loadActiveCharacter().weaponComponents.pistol?.barrel, {
+      id: "barrel-long-range",
+      rank: 1,
+    });
+    assert.equal(upgradeCharacterWeaponComponent("smg", "barrel-heavy", true).ok, false);
+  });
+
+  it("účtuje ranky komponent podle materiálů a levelu postavy", () => {
+    assert.deepEqual(weaponComponentCost("core-fire", 1), {
+      scrap: 20,
+      alloys: 0,
+      cores: 0,
+      catalyst: "fire",
+      catalysts: 2,
+      requiredLevel: 1,
+    });
+    assert.deepEqual(weaponComponentCost("core-fire", 2), {
+      scrap: 45,
+      alloys: 0,
+      cores: 1,
+      catalyst: "fire",
+      catalysts: 4,
+      requiredLevel: 10,
+    });
+
+    memoryStorage();
+    const save = loadCharacters();
+    save.characters[0] = {
+      ...save.characters[0]!,
+      craftedWeapons: ["pistol"],
+      weaponComponents: { pistol: { core: { id: "core-fire", rank: 1 } } },
+      materials: { scrap: 45, alloys: 0, cores: 1, catalysts: { fire: 4 }, fragments: {} },
+    };
+    writeCharacters(save);
+    assert.equal(upgradeCharacterWeaponComponent("pistol", "core-fire", true).ok, false);
+
+    const leveled = loadCharacters();
+    leveled.characters[0] = { ...leveled.characters[0]!, level: 10 };
+    writeCharacters(leveled);
+    const upgraded = upgradeCharacterWeaponComponent("pistol", "core-fire", true);
+    assert.equal(upgraded.ok, true);
+    assert.deepEqual(upgraded.character.weaponComponents.pistol?.core, {
+      id: "core-fire",
+      rank: 2,
+    });
+    assert.equal(upgraded.character.materials.cores, 0);
+    assert.equal(upgraded.character.materials.catalysts.fire ?? 0, 0);
+  });
+
+  it("použije komponenty pouze na vyrobenou startovní zbraň a nemění loot mody", () => {
+    memoryStorage();
+    const baseline = new Run("COMPONENT-START", { starterArchetype: "pistol" });
+    const modified = new Run("COMPONENT-START", {
+      starterArchetype: "pistol",
+      starterComponents: {
+        barrel: { id: "barrel-heavy", rank: 1 },
+        core: { id: "core-fire", rank: 2 },
+      },
+    });
+    const plainWeapon = baseline.weapons[0]!;
+    const changedWeapon = modified.weapons[0]!;
+    assert.ok(changedWeapon.stats.damage > plainWeapon.stats.damage);
+    assert.ok(changedWeapon.stats.rpm < plainWeapon.stats.rpm);
+    assert.equal(changedWeapon.element, "fire");
+    assert.equal(changedWeapon.behaviors.burn, (plainWeapon.behaviors.burn ?? 0) + 1);
+    assert.deepEqual(changedWeapon.mods, plainWeapon.mods);
+
+    const direct = applyWeaponComponents(plainWeapon, { barrel: { id: "barrel-precision", rank: 1 } });
+    assert.ok(direct.stats.critChance > plainWeapon.stats.critChance);
+  });
+
+  it("bankne materiály z expedice do postavy bez smíchání se statistikami profilu", () => {
+    memoryStorage();
+    const earned = rollCharacterMaterialDrop(() => 0, "tank", {
+      elite: true, boss: false, sector: 1, forge: true, lab: false, scavenging: 0,
+    });
+    const character = grantCharacterRunMaterials(earned, 25);
+    assert.equal(character.materials.scrap, 25);
+    assert.equal(character.materials.alloys, 2);
+    assert.equal(character.materials.fragments.shotgun, 1);
+    assert.equal(loadSave().totalScrap, 0);
+  });
+
+  it("aplikuje trvalé talenty na zdraví a poškození zbraní při startu běhu", () => {
+    memoryStorage();
+    const base = new Run("TALENT-TEST", { characterTalents: { vitality: 0, ballistics: 0, scavenging: 0 } });
+    const baseHp = base.player.maxHp;
+    const baseDamage = base.statsSnap().player.weapons[0]!.damage;
+    memoryStorage();
+    const improved = new Run("TALENT-TEST", { characterTalents: { vitality: 2, ballistics: 3, scavenging: 1 } });
+    assert.equal(improved.player.maxHp, baseHp + 16);
+    const improvedDamage = improved.statsSnap().player.weapons[0]!.damage;
+    assert.ok(Math.abs(improvedDamage / baseDamage - 1.09) < 0.0001);
   });
 });
 
@@ -968,10 +1264,12 @@ describe("reset progressu", () => {
     localStorage.setItem("vaultbreak.board.v1", JSON.stringify({ daily: [], weekly: [] }));
     localStorage.setItem("vaultbreak.blueprints.v1", JSON.stringify({ pistol: 30 }));
     localStorage.setItem("vaultbreak.armory.v1", "pistol");
+    localStorage.setItem(CHARACTER_STORAGE_KEY, JSON.stringify({ version: 1 }));
     localStorage.setItem("vaultbreak.vol.sfx", "0.5");
     resetProgress();
     for (const key of [
       "vaultbreak-v1",
+      CHARACTER_STORAGE_KEY,
       "vaultbreak.codex.v1",
       "vaultbreak.achievements.v1",
       "vaultbreak.badges.v1",

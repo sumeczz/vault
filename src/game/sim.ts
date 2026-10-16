@@ -21,8 +21,11 @@ import {
   type Floater,
   type Particle,
 } from "./juice";
-import { bossTierForLevel, catchUpForSector, difficultyForLevel, getDifficulty, globalLevel, SECTOR_SIZE } from "./difficulty";
+import { bossTierForLevel, catchUpForSector, difficultyForLevel, ELITE_POS, getDifficulty, globalLevel, SECTOR_SIZE } from "./difficulty";
 import { bomberBlastAt, enemyStatsAt, rollAffixes, BOSS_PHASE_ADDS, BOSS_PHASE_NAMES, BOSS_PHASE_STATS, bossPhaseFor, ENEMY_NAME, ENEMY_ORDER, ENEMY_RANGED, ENEMY_CHARGE, ENEMY_BLAST, ENEMY_SPLIT_MAX, type BossPhase, type EliteAffixId, type EnemyStats } from "./bestiary";
+import { loadActiveCharacter, normalizeTalents, xpForNextLevel, type CharacterTalents } from "./characters";
+import { describeMaterialDrop, emptyCharacterMaterials, rollCharacterMaterialDrop } from "./character-armory";
+import { applyWeaponComponents, type WeaponComponentLoadout } from "./weapon-components";
 import {
   anomalyForSector,
   gamePhaseFor,
@@ -169,6 +172,13 @@ export type HudSnap = {
   waves: number;
   remaining: number;
   waveIn: number;
+  waveAwaiting: boolean;
+  /** Aktuální běhové XP (resetuje se každým během). */
+  runXp: number;
+  /** Level a dosavadní XP postavy při zahájení běhu. */
+  characterLevel: number;
+  characterXp: number;
+  characterXpToNext: number;
   scrap: number;
   sectorMod: SectorModId | null;
   anomaly: AnomalyId | null;
@@ -197,7 +207,7 @@ export type RunPhase = "combat" | "cleared" | "loot" | "dead" | "win" | "base";
 export const MOD_INV_MAX = 8;
 /** Událost běhu pro event feed v HUD (toasty): odznaky, kodex. UI si je vyzvedne přes drainEvents(). */
 export type GameEvent = {
-  kind: "challenge" | "codex";
+  kind: "challenge" | "codex" | "material";
   text: string;
   sub?: string;
 };
@@ -234,6 +244,9 @@ export type StatsSnap = {
   waves: number;
   remaining: number;
   waveIn: number;
+  waveAwaiting: boolean;
+  xp: number;
+  xpToNext: number;
   player: {
     hp: number;
     maxHp: number;
@@ -266,6 +279,10 @@ export type RunSettings = {
   torment?: boolean;
   /** Startovní archetyp ze zbrojnice (blueprint rank 2+, pravidla §23). */
   starterArchetype?: ArchetypeId;
+  /** Trvalé talenty aktivní postavy, zachycené při startu běhu. */
+  characterTalents?: CharacterTalents;
+  /** Komponenty zvolené vyrobené startovní zbraně; loot z běhu se tím nemění. */
+  starterComponents?: WeaponComponentLoadout;
 };
 
 type Buffs = {
@@ -410,6 +427,13 @@ export class Run {
   /** Kumulativní čítače běhu pro achievementy. */
   bossesKilled = 0;
   scrapEarned = 0;
+  /** XP aktuálního běhu; při ukončení se připíší postavě. */
+  runXp = 0;
+  /** Materiály i fragmenty zůstávají během běhu v dočasné zásilce až do banku. */
+  runMaterials = emptyCharacterMaterials();
+  rewardsBanked = false;
+  characterTalents: CharacterTalents = { vitality: 0, ballistics: 0, scavenging: 0 };
+  private characterProgress = loadActiveCharacter();
   /** Statistiky běhu pro koncový přehled: způsobené/utržené poškození, výstřely/zásahy. */
   dmgDealt = 0;
   dmgTaken = 0;
@@ -564,6 +588,8 @@ export class Run {
   waveT = 0;
   spawnedWave = -1;
   breakT = 0;
+  /** První vlna místnosti čeká na potvrzení hráče (tlačítko Start vlna). */
+  waveAwaitingStart = false;
   buffs: Buffs = {
     timestop: 0,
     orbitals: 0,
@@ -596,6 +622,9 @@ export class Run {
     this.synergyUnlocked = settings.synergyUnlocked ?? false;
     this.veteran = settings.veteran ?? false;
     this.torment = settings.torment ?? false;
+    this.characterTalents = normalizeTalents(settings.characterTalents ?? this.characterProgress.talents);
+    this.player.maxHp += this.characterTalents.vitality * 8;
+    this.player.hp = this.player.maxHp;
     const s = hashSeed(this.seed);
     this.lootRng = stream(s, 0x9e3779b9);
     this.roomRng = stream(s, 0x85ebca6b);
@@ -622,7 +651,7 @@ export class Run {
     if (settings.starterArchetype) {
       const def = this.weaponDefs.find((d) => d.archetype === settings.starterArchetype);
       if (def) {
-        this.weapons[0] = generateWeapon(
+        const starter = generateWeapon(
           this.lootRng,
           0,
           false,
@@ -632,6 +661,7 @@ export class Run {
           [],
           this.blueprints,
         );
+        this.weapons[0] = applyWeaponComponents(starter, settings.starterComponents);
       }
     }
     // Start z checkpointu: rerolly místnosti + bonusový reroll navíc (pravidla §8).
@@ -648,6 +678,7 @@ export class Run {
     this.player.mag[0] = this.magSizeOf(this.weapons[0]);
     this.room = generateRoom(this.roomRng, 0, this.roomPlans[0] ?? undefined, this.level);
     this.markBossRoom();
+    this.waveAwaitingStart = true;
   }
 
   get level(): number {
@@ -770,6 +801,11 @@ export class Run {
       waves: this.room.waves.length,
       remaining: this.enemies.filter((e) => e.active).length,
       waveIn: this.waveCountdown(),
+      waveAwaiting: this.waveAwaitingStart,
+      runXp: this.runXp,
+      characterLevel: this.characterProgress.level,
+      characterXp: this.characterProgress.xp,
+      characterXpToNext: xpForNextLevel(this.characterProgress.level),
       scrap: this.scrap,
       sectorMod: this.sectorMod,
       anomaly: this.anomaly,
@@ -805,8 +841,8 @@ export class Run {
       return {
         slot,
         name: w.name,
-        dps: dpsEstimate(w) * (1 + this.passiveSum("overloaded")) * mutDmg * mutRpm,
-        damage: w.stats.damage * mutDmg,
+        dps: dpsEstimate(w) * (1 + this.passiveSum("overloaded")) * mutDmg * mutRpm * (1 + this.characterTalents.ballistics * 0.03),
+        damage: w.stats.damage * mutDmg * (1 + this.characterTalents.ballistics * 0.03),
         rpm: w.stats.rpm * (1 + this.passiveSum("overloaded")) * mutRpm,
         pellets: w.stats.pellets,
         magSize: this.magSizeOf(w),
@@ -830,6 +866,12 @@ export class Run {
       waves: this.room.waves.length,
       remaining: this.enemies.filter((e) => e.active).length,
       waveIn: this.waveCountdown(),
+      waveAwaiting: this.waveAwaitingStart,
+      xp: Math.min(
+        xpForNextLevel(this.characterProgress.level),
+        this.characterProgress.xp + this.runXp,
+      ),
+      xpToNext: xpForNextLevel(this.characterProgress.level),
       player: {
         hp: this.player.hp,
         maxHp: this.player.maxHp,
@@ -881,6 +923,8 @@ export class Run {
     this.loot = [];
     this.rerolls = this.roomRerolls();
     this.enterRoomCue();
+    // Start vlna čeká na potvrzení hráče pouze po elitní místnosti (6. v sektoru).
+    this.waveAwaitingStart = ELITE_POS.includes(((this.roomIndex - 1) % SECTOR_SIZE + SECTOR_SIZE) % SECTOR_SIZE);
     for (const e of this.enemies) e.active = false;
     for (const b of this.bullets) if (b.team === 1) b.active = false;
   }
@@ -1255,6 +1299,7 @@ export class Run {
     this.loot = [];
     this.rerolls = this.roomRerolls();
     this.enterRoomCue();
+    this.waveAwaitingStart = true;
     for (const e of this.enemies) e.active = false;
     for (const b of this.bullets) if (b.team === 1) b.active = false;
   }
@@ -1370,7 +1415,7 @@ export class Run {
       const spread = w.stats.spread * mutMult(this.mutators, "spread") * (1 - Math.min(0.5, this.passiveSum("focus"))) * (0.4 + 0.6 * (pellets > 1 ? 1 : 0.5));
       const a = aim + (this.combatRng() - 0.5) * 2 * spread + (pellets > 1 ? ((i - (pellets - 1) / 2) * spread) / pellets : 0);
       const crit = this.combatRng() < Math.max(0, Math.min(CRIT_CHANCE_CAP, w.stats.critChance + (mutMult(this.mutators, "crit") - 1) + this.codex.crit));
-      const dmg = w.stats.damage * (crit ? Math.min(CRIT_MULT_CAP, w.stats.critMult) : 1);
+      const dmg = w.stats.damage * (1 + this.characterTalents.ballistics * 0.03) * (crit ? Math.min(CRIT_MULT_CAP, w.stats.critMult) : 1);
       this.spawnBullet({
         x: this.player.x + Math.cos(aim) * 18,
         y: this.player.y + Math.sin(aim) * 18,
@@ -1503,6 +1548,37 @@ export class Run {
     this.kills += 1;
     this.combo += 1;
     this.comboT = 1.4;
+    // XP za zabití (bossové víc).
+    const xpValue = e.kind === "boss" ? 50 : e.kind === "matka" || e.kind === "spravce" ? 25 : 10;
+    this.runXp += xpValue;
+    const resourceDrop = rollCharacterMaterialDrop(this.combatRng, e.kind, {
+      elite: this.room.isElite,
+      boss: e.kind === "boss",
+      sector: this.sector + 1,
+      forge: this.sectorMod === "forge",
+      lab: this.sectorMod === "lab",
+      scavenging: this.characterTalents.scavenging,
+    });
+    for (const key of ["scrap", "alloys", "cores"] as const) {
+      this.runMaterials[key] += resourceDrop[key];
+    }
+    for (const [element, amount] of Object.entries(resourceDrop.catalysts)) {
+      const key = element as keyof typeof this.runMaterials.catalysts;
+      this.runMaterials.catalysts[key] = (this.runMaterials.catalysts[key] ?? 0) + amount;
+    }
+    for (const [archetype, amount] of Object.entries(resourceDrop.fragments)) {
+      const key = archetype as keyof typeof this.runMaterials.fragments;
+      this.runMaterials.fragments[key] = (this.runMaterials.fragments[key] ?? 0) + amount;
+    }
+    const dropSummary = describeMaterialDrop(resourceDrop);
+    if (dropSummary) {
+      this.events.push({
+        kind: "material",
+        text: e.kind === "boss" ? "Garantovaná zásilka" : "Získané zdroje",
+        sub: dropSummary,
+      });
+      spawnFloater(this.floats, e.x, e.y - e.r, dropSummary, "#9eb4c4", e.kind === "boss");
+    }
     // Kodex (§18): druh nepřítele + affixy, které nesl + archetyp zbraně v ruce.
     this.noteCodex("enemy", e.kind);
     for (const a of e.affixes) this.noteCodex("affix", a);
@@ -2250,6 +2326,7 @@ export class Run {
     if (this.waveI >= this.room.waves.length) return;
     const any = this.enemies.some((e) => e.active);
     if (this.spawnedWave < this.waveI) {
+      if (this.waveAwaitingStart) return; // čeká na potvrzení hráče
       this.waveT += dt;
       const wave = this.room.waves[this.waveI]!;
       if (this.waveT >= wave.delay) {
@@ -2283,12 +2360,27 @@ export class Run {
   waveCountdown(): number {
     if (this.waveI >= this.room.waves.length) return 0;
     if (this.spawnedWave < this.waveI) {
+      if (this.waveAwaitingStart) return 0;
       return Math.max(0, this.room.waves[this.waveI]!.delay - this.waveT);
     }
     if (!this.enemies.some((e) => e.active) && this.waveI + 1 < this.room.waves.length) {
       return Math.max(0, WAVE_BREAK - this.breakT);
     }
     return 0;
+  }
+
+  /** Spustí čekající první vlnu místnosti na požádání hráče. Vrací false, pokud vlna už běží nebo neexistuje. */
+  startWave(): boolean {
+    if (this.waveI >= this.room.waves.length) return false;
+    if (this.spawnedWave >= this.waveI) return false; // already spawned this wave
+    const wave = this.room.waves[this.waveI]!;
+    this.spawnWave(wave);
+    this.spawnedWave = this.waveI;
+    this.waveT = 0;
+    this.breakT = 0;
+    this.waveAwaitingStart = false;
+    sfxPlay.waveIncoming();
+    return true;
   }
 
   private updateEnemies(dt: number) {

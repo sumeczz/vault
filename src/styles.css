@@ -18,14 +18,32 @@
   --color-rarity-epic: #c45c3e;
   --color-rarity-legendary: #d6dde4;
   --color-rarity-mythic: #9eb4c4;
-  --font-display: "Syne", "Segoe UI", system-ui, sans-serif;
-  --font-sans: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  /* Knihovna komponent v1.0 (§2) — nové tokeny; staré výše zůstávají jako aliasy do konce migrace. */
+  --color-bg-primary: #080d13;
+  --color-surface-primary: #101923;
+  --color-surface-raised: #172431;
+  --color-border-default: #304354;
+  --color-text-primary: #f3f6fa;
+  --color-text-secondary: #a8b6c5;
+  --color-accent-blue: #43bfff;
+  --color-accent-orange: #ff8a24;
+  --color-state-success: #52d69a;
+  --color-state-danger: #ff555b;
+  --color-accent-purple: #b58aff;
+  --font-display: "Inter", "Segoe UI", system-ui, sans-serif;
+  --font-sans: "Inter", "Segoe UI", system-ui, sans-serif;
   --radius-xs: 4px;
   --radius-sm: 8px;
   --radius-md: 12px;
   --radius-lg: 16px;
   --radius-xl: 24px;
   --radius-2xl: 28px;
+  /* Knihovna §2 — rozměry: odsazení obrazovky 16, karta 12–16, mezera 8, sekce 16–24. */
+  --vb-space-screen: 16px;
+  --vb-space-card: 14px;
+  --vb-space-gap: 8px;
+  --vb-space-section: 20px;
+  --vb-touch-min: 48px;
 }
 
 @layer base {
@@ -164,33 +182,43 @@
     animation: vb-fade-up 0.32s ease-out both;
     animation-delay: calc(var(--vb-i, 0) * 70ms);
   }
-  /* Primarni velke tlacitko */
+  /* Primarni akcni tlacitko (knihovna §3.1): oranzova, vyska 64-76, tmavy text 18-22. */
   .vb-btn-primary {
     display: flex;
-    min-height: 3.25rem;
+    min-height: 4rem;
     align-items: center;
     justify-content: center;
     gap: 0.5rem;
     border-radius: 1rem;
-    background: linear-gradient(180deg, #dfe3e9, var(--color-accent));
-    color: var(--color-accent-fg);
-    font-size: 0.95rem;
-    font-weight: 600;
-    box-shadow:
-      0 6px 20px -6px rgba(200, 204, 212, 0.35),
-      inset 0 1px 0 rgba(255, 255, 255, 0.5);
+    background: var(--color-accent-orange);
+    color: #080d13;
+    font-size: 1.125rem;
+    font-weight: 700;
+    box-shadow: 0 6px 20px -6px rgba(255, 138, 36, 0.35);
     transition:
       transform 0.12s ease,
       box-shadow 0.15s ease,
       filter 0.15s ease;
+  }
+  .vb-game button {
+    min-height: var(--vb-touch-min);
+  }
+  .vb-game .vb-switch {
+    min-height: 30px;
   }
   .vb-btn-primary:hover {
     filter: brightness(1.06);
   }
   .vb-btn-primary:active {
     transform: scale(0.97);
+    filter: brightness(0.94);
   }
-  /* Sekundarni velke tlacitko */
+  .vb-btn-primary:disabled {
+    opacity: 0.45;
+    filter: none;
+    box-shadow: none;
+  }
+  /* Sekundarni tlacitko (knihovna §3.2): tmave, vyska 48-56, text 14-16. */
   .vb-btn-ghost {
     display: flex;
     min-height: 3.25rem;
@@ -213,6 +241,72 @@
   }
   .vb-btn-ghost:active {
     transform: scale(0.97);
+  }
+  .vb-btn-ghost:disabled {
+    opacity: 0.45;
+  }
+  /* Stavove varianty karet (knihovna §4): uzamcena / uspech / nebezpecí. */  .vb-card-locked {
+    border: 1px solid var(--color-border);
+    background: var(--color-surface);
+    opacity: 0.85;
+  }
+  .vb-card-success {
+    border: 1px solid var(--color-state-success);
+    background: color-mix(in srgb, var(--color-state-success) 12%, var(--color-surface));
+  }
+  .vb-card-danger {
+    border: 1px solid var(--color-state-danger);
+    background: color-mix(in srgb, var(--color-state-danger) 12%, var(--color-surface));
+  }
+  /* Prepinac (knihovna §5, Torment): vizualni stav se meni okamzite s hodnotou. */
+  .vb-switch {
+    position: relative;
+    display: inline-block;
+    width: 52px;
+    height: 30px;
+    flex-shrink: 0;
+    border-radius: 999px;
+    border: 1px solid var(--color-border);
+    background: var(--color-surface);
+    transition:
+      background 0.15s ease,
+      border-color 0.15s ease;
+  }
+  .vb-switch[data-on="true"] {
+    background: var(--color-accent-orange);
+    border-color: var(--color-accent-orange);
+  }
+  .vb-switch::after {
+    content: "";
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: 22px;
+    height: 22px;
+    border-radius: 999px;
+    background: var(--color-text-primary);
+    transition: transform 0.15s ease;
+  }
+  .vb-switch[data-on="true"]::after {
+    transform: translateX(22px);
+  }
+  /* Hero karta s ilustraci (knihovna §4.4): text ma kontrastni podklad. */
+  .vb-hero {
+    position: relative;
+    overflow: hidden;
+    border-radius: 1.125rem;
+    border: 1px solid var(--color-border);
+    background: var(--color-surface);
+  }
+  .vb-hero img {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+  .vb-hero-body {
+    position: relative;
+    padding: 12px 16px;
+    background: var(--color-surface-primary);
   }
   /* Karta dialogu */
   .vb-dialog {
@@ -242,6 +336,10 @@
     background: linear-gradient(90deg, #c45c3e, #e08a63);
     transition: width 0.18s ease-out;
   }
+  .vb-xp-fill {
+    background: linear-gradient(90deg, #9eb4c4, #d6dde4);
+    transition: width 0.18s ease-out;
+  }
   .vb-hp-low {
     animation: vb-danger-pulse 0.9s ease-in-out infinite;
   }
@@ -261,5 +359,15 @@
   }
   .vb-loot-card:active {
     transform: scale(0.98);
+  }
+  .vb-game :is(button, [role="button"], summary):focus-visible {
+    outline: 2px solid var(--color-accent-blue);
+    outline-offset: 2px;
+  }
+  .vb-game details > summary::-webkit-details-marker {
+    display: none;
+  }
+  .vb-game details > summary {
+    list-style: none;
   }
 }

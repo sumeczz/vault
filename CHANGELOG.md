@@ -1,5 +1,21 @@
 # Changelog
 
+## Produkční úprava: přihlášení, vlny, statistiky (nové)
+
+- **Přihlášení a registrace**: první spuštění vyžaduje přezdívku (2–16 znaků) a 4místný PIN (+ potvrzení); následně jen PIN. Účet je uložen lokálně pro zařízení (`vaultbreak-profile-v1`), nelze obnovit po smazání dat.
+- **Spuštění vlny**: před první vlnou každého sektoru a před 6. vlnou (ELIT, index 5) se zobrazí tlačítko **Start vlna** v HUD; ostatní vlny naskakují automaticky po 2,5 s pauze. Hráč má čas nasadit vylepšení do zbraně v Dílně.
+- **Detailní statistiky**: nová obrazovka **Statistiky** v menu (běhy, nejv. úroveň, zabití, bossové, šrot, herní čas, přesnost, střely, poškození ven/dovnitř). Konec běhu ukazuje rozšířené statistiky (střely, šrot, místnost).
+- **Save verze 4**: přibyly celkové čítače `totalPlayTime`, `totalShotsFired`, `totalShotsHit`, `totalDmgDealt`, `totalDmgTaken`, `bestRoom`.
+- **XP a profilová úroveň (nové)**: v HUD se zobrazuje progresní bar `Lvl N · XP aktuální/požadované`. Za zabití hráč získá běhové XP; po konci běhu se přičte k profilu a leveluje podle progresivního vzorce `100 × 1,5^(level-1)` (L1→2: 100, L30→31: ~55 905). Úroveň a XP přetrvávají napříč běhy (save verze 5, pole `level`, `xp`, `xpTotal`).
+- **Grafické assety pro menu (nové)**: jednotná sada 19 UI ikon (`public/assets/ui/icons/`, komponenta `src/game/ui-icons.tsx` s `currentColor` pro všechny stavy), portrét vojáka a 3 environment ilustrace (vstup/interiér trezoru, aréna). V menu nahrazují lucide: Torment lebka, kalendáře výzev, play v NOVÝ BĚH/Start vlna a 5 ikon panelu postavy.
+- **Spodní navigace (nová)**: Domů / Postava / Kodex / Achievementy / Cesta s aktivním zvýrazněním a safe-area; nová obrazovka Postava (profil, XP, odznaky).
+- **Karty zbraní (nové)**: parametrická komiksová ilustrace všech 16 archetypů (`src/game/weapon-art.tsx`, element akcent, rarity proužek) v loot kartách i v panelu postavy; mřížka DMG/DPS/RPM; low-HP čísla v HUD červeně.
+- **Nepřátelé jako assety (nové)**: všech 28 druhů má komiksový SVG sprite (`public/assets/sprites/enemies/`, siluety dle typu útoku, barvy bestiáře); `drawEnemy` je používá s fallbackem na procedurální tvary — HP bary, affix kroužky i status efekty zůstávají canvasové. Při zásahu (bílý flash) se kreslí procedurálně pro čitelnou odezvu.
+- **Ikony místo emoji (nové)**: `diamond` ikona v sadě; zámky v Cestě/Achievementech, dash pipky (CSS tečky), `◆` u anomálií/affixů a `⚙` v celém DOM UI nahrazeny ikonami (`statScrap`, `diamond`). Canvas floatry a nápověda si textové znaky nechávají.
+- **Návrat od assetů (nové)**: na rozhodnutí nepoužívat SVG assety odstraněn celý asset systém (`src/game/assets.ts`, `src/game/ui-icons.tsx`, `src/game/weapon-art.tsx`, `public/assets/`); UI zpět na lucide + CSS tvary, canvas zpět na čistě procedurální kresbu. Funkce (auth, statistiky, vlny, XP, navigace) i styly Fází 1–4 zachovány.
+- **QA Fáze 9**: všechna SVG bez vloženého textu (§19); testy 55 + 93 pass / 0 fail (wave test a save test aktualizovány na nové chování + nový XP test); odstraněny nepoužívané importy (`Lock`, `CalendarDays`). Ověřeno: `npm run typecheck` ✓, `npm test` ✓, `npm run build` ✓.
+- Ověřeno: `npm run typecheck` ✓, `npm run build` ✓.
+
 ## Dílna + blueprinty (nové, hybrid A+C)
 
 - **Rámy a mody**: zbraně jsou rámy s mod-sloty (unikátní relikvie bez slotů);
