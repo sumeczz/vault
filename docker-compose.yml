@@ -1,0 +1,46 @@
+# VAULTBREAK — plný stack na jeden příkaz.
+# 1) zkopíruj:  cp .env.deploy.example .env.deploy   (soubor zatím nevytvářej v repu)
+# 2) doplň BETTER_AUTH_SECRET a BETTER_AUTH_URL
+# 3) spusť:     docker compose --env-file .env.deploy up -d --build
+#
+# Bez externí DB jede vestavěná PGLite (data mizí s restartem kontejneru).
+# S profilem "db" se rozběhne i lokální Postgres s perzistentním volumem.
+
+services:
+  app:
+    build: .
+    ports:
+      - "${PORT:-8080}:8080"
+    environment:
+      HOST: "0.0.0.0"
+      PORT: "8080"
+      DATABASE_URL: ${DATABASE_URL:-}
+      BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET:?Nastav BETTER_AUTH_SECRET v .env.deploy}
+      BETTER_AUTH_URL: ${BETTER_AUTH_URL:?Nastav BETTER_AUTH_URL v .env.deploy}
+      VITE_AUTH_ENABLED: ${VITE_AUTH_ENABLED:-true}
+    depends_on:
+      db:
+        condition: service_healthy
+        required: false
+    restart: unless-stopped
+
+  # Volitelný lokální Postgres (místo Neonu). Spustí se jen s profilem "db":
+  #   docker compose --profile db --env-file .env.deploy up -d --build
+  # a v .env.deploy pak: DATABASE_URL=postgresql://vaultbreak:vaultbreak@db:5432/vaultbreak
+  db:
+    image: postgres:16-alpine
+    profiles: ["db"]
+    environment:
+      POSTGRES_USER: vaultbreak
+      POSTGRES_PASSWORD: vaultbreak
+      POSTGRES_DB: vaultbreak
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U vaultbreak -d vaultbreak"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  pgdata:

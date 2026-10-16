@@ -1,0 +1,38 @@
+{
+  "url": "http://127.0.0.1:8081/",
+  "viewports": {
+    "desktop": {
+      "width": 1280,
+      "height": 800,
+      "status": 200,
+      "title": "VAULTBREAK",
+      "hasCanvas": true,
+      "bodyTextLen": 201,
+      "bodyTextHash": "ab24d1dafff9972aeed36dad57c3a014881a8dbcfe9901bc92c8856a67ad9dec",
+      "bodyTextPrefix": "ROGUELITE LOOTER Trezor 09 — otevřen VAULTBREAK Prolomi trezor. ",
+      "horizontalOverflow": false,
+      "consoleErrors": [],
+      "pageErrors": [],
+      "screenshot": "/workspace/screenshots/app-builder-built.png"
+    },
+    "mobile": {
+      "width": 390,
+      "height": 844,
+      "status": 200,
+      "title": "VAULTBREAK",
+      "hasCanvas": true,
+      "bodyTextLen": 201,
+      "bodyTextHash": "ab24d1dafff9972aeed36dad57c3a014881a8dbcfe9901bc92c8856a67ad9dec",
+      "bodyTextPrefix": "ROGUELITE LOOTER Trezor 09 — otevřen VAULTBREAK Prolomi trezor. ",
+      "horizontalOverflow": false,
+      "consoleErrors": [],
+      "pageErrors": [],
+      "screenshot": "/workspace/screenshots/app-builder-built-mobile.png"
+    }
+  },
+  "brandWarnings": [],
+  "authWarnings": [],
+  "verdictFile": "/workspace/screenshots/app-builder-built.json",
+  "divergesFromBaseline": false,
+  "baselineReasons": []
+}
