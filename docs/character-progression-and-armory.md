@@ -1,16 +1,22 @@
 # Postavy, levelování a zbrojnice
 
-Návrh rozšiřuje progresi VAULTBREAK bez změny pravidla, že účetní odemykání
+Implementovaný systém rozšiřuje progresi VAULTBREAK bez změny pravidla, že účetní odemykání
 probíhá přes stránku **Cesta**. Profil, postava a aktuální běh jsou tři odlišné
 vrstvy. Tento dokument doplňuje `progression-rules.md`; nemění odemykání profilu
 ani obsah existujících odměn v běhu.
 
-## 1. Cíle a hranice
+Číselné hodnoty a ceny níže jsou aktuální implementované hodnoty, ne jen návrh.
+Systémové toky a hranice vůči Kodexu, vstupům a běhu jsou shrnuty v
+[`game-systems-reference.md`](./game-systems-reference.md).
+
+## 1. Cíle, hranice a stav funkcí
 
 - **Profil/účet** vlastní odemykání funkcí podle nejvyšší dosažené globální
   úrovně běhu (`bestLevel`) a postup zobrazený na stránce Cesta.
-- **Postava** vlastní své bojové XP, level, talentové body, trvalé talenty,
-  vyrobené zbraně a materiály. XP a bonusy jedné postavy se nepřenášejí na jinou.
+- **Aktivní postava** vlastní bojové XP, level, talentové body, trvalé talenty,
+  vyrobené zbraně, komponenty a materiály. Aktuální verze umožňuje pouze
+  výchozí postavu; ukládací formát je připraven na seznam, nikoli však UI
+  správy více postav/tříd.
 - **Běh** vlastní dočasný level, zbraně a build. Tyto hodnoty se po skončení
   běhu nestávají permanentním levelem postavy.
 - Při porážce i dobrovolném banknutí se postavě připíšou všechna XP získaná
@@ -18,14 +24,11 @@ ani obsah existujících odměn v běhu.
 - Zbraň vyrobená před během je volitelná startovní výbava; kořist a upgrady
   nalezené během běhu zůstávají samostatnou roguelite vrstvou.
 
-Veškeré ceny, prahy a váhy níže jsou počáteční návrhové hodnoty k testování.
-Před vydáním se ověří simulací délky postupu a skutečných dropů.
-
 ## 2. Level postavy
 
-První verze používá jednu výchozí postavu a strop **30 levelů na postavu**.
-Datový model však počítá s více samostatnými postavami, každou s vlastním
-identifikátorem. Nová postava začíná na levelu 1 bez XP a talentových bodů.
+Implementovaná verze používá jednu výchozí postavu a strop **30 levelů**.
+Datový model (`CharacterSave`) má stabilní ID a seznam postav, ale zakládání,
+pojmenování a přepínání dalších postav není zatím dostupná funkce.
 
 ### XP
 
@@ -202,15 +205,17 @@ běhu.
 
 ## 7. Ukládání, migrace a ochrana postupu
 
-- Uložit postavy pod odděleným verzovaným klíčem; každá postava má stabilní ID.
+- Postavy jsou uloženy pod odděleným verzovaným klíčem
+  `vaultbreak.characters.v1`; každá má stabilní ID.
 - Účetní save nadále vlastní `bestLevel`, statistiky běhů a checkpointy.
 - XP postavy, talentové body, ranky talentů, respecy, materiály, fragmenty,
   vyrobené archetypy a startovní výbava se ukládají s postavou pod
   `vaultbreak.characters.v1`, ne v účtu.
 - Migrace současných profilových XP do výchozí postavy se provede jednou a bez
   vymazání `bestLevel`; starší save bez XP začíná jako postava level 1.
-- Reset profilu jasně vysvětlí, zda resetuje i postavy, než je potvrzen. Export
-  a import uložených postav se doplní před přidáním více postav.
+- Reset herního postupu odstraní postavu společně s ostatním herním postupem;
+  potvrzovací text tento rozsah výslovně uvádí. Export/import a obnova
+  postavní zálohy zatím nejsou implementovány.
 - Zásilka zdrojů se ukládá při porážce nebo banknutí; při opuštění běhu před
   ukončením se ztrácí. Zápisy talentů a výroby probíhají při potvrzené akci,
   ne v herním snímkovacím cyklu. Neplatný save spadne na bezpečné výchozí
@@ -228,8 +233,9 @@ běhu.
    zbraně; validace cen i denních/týdenních běhů.
 5. **Trvalé úpravy:** sloty, ceny, porovnání před/po, potvrzení nákladů a
    oddělení od existujících loot modů.
-6. **Více postav/tříd:** výběr, vytvoření postavy, samostatné ukládání a
-   specializované stromy po ověření prvních pěti etap.
+6. **Více postav/tříd:** plánovaná etapa. Přidá výběr, vytvoření a případně
+   smazání postavy, samostatné ukládání i specializované stromy až po
+   rozhodnutí o migraci/mazání a ověření izolace postupu postav.
 
 ### Stav práce
 
@@ -246,4 +252,6 @@ běhu.
   uložení na postavě a použití pouze na vyrobené startovní zbrani. Výroba a
   úpravy jsou dostupné na samostatné stránce Kovárny, oddělené od přehledu
   postavy.
-- Etapa 6: čeká; více postav/tříd.
+- Etapa 6: čeká; více postav/tříd. Je dalším přirozeným rozšířením tohoto
+  systému; aktuální aktivní postava zůstává jediným použitelným profilem
+  postavy.

@@ -10,7 +10,7 @@ import { DEFAULT_ABILITY_DEFS, DEFAULT_PASSIVE_DEFS } from "./abilities";
 import { ELITE_AFFIXES, ENEMY_ATTACK, ENEMY_ATTACK_LABEL, ENEMY_NAME, ENEMY_ORDER } from "./bestiary";
 import { MUTATORS } from "./mutators";
 import { DEFAULT_UNIQUES, DEFAULT_WEAPON_DEFS } from "./weapons";
-import { ARCHETYPE_LABEL } from "./types";
+import { ARCHETYPE_LABEL, type EnemyKind } from "./types";
 import { ANOMALIES, SECTOR_MODS } from "./expedition";
 
 export type CodexCategory =
@@ -126,6 +126,33 @@ export function codexEntries(): CodexEntry[] {
 }
 
 const CODEX_STORAGE_KEY = "vaultbreak.codex.v1";
+const ENEMY_KNOWLEDGE_STORAGE_KEY = "vaultbreak.codex.enemy-knowledge.v1";
+
+export const ENEMY_KNOWLEDGE_THRESHOLDS = [1, 10, 50, 200, 750, 2000] as const;
+export const ENEMY_KNOWLEDGE_LABELS = [
+  "První kontakt",
+  "Pozorovaný",
+  "Studovaný",
+  "Analyzovaný",
+  "Zmapovaný",
+  "Dokonale známý",
+] as const;
+
+export type EnemyKnowledgeProgress = {
+  kills: number;
+  level: number;
+  label: string;
+  currentThreshold: number;
+  nextThreshold: number | null;
+  percent: number;
+  maxed: boolean;
+};
+
+export type EnemyKnowledgeState = {
+  kills: Record<EnemyKind, number>;
+  prestigeAwarded: EnemyKind[];
+  prestigePoints: number;
+};
 
 function entryKey(cat: CodexCategory, id: string): string {
   return `${cat}:${id}`;
@@ -150,6 +177,82 @@ function writeCodex(set: Set<string>): void {
   } catch {
     /* ignore quota */
   }
+}
+
+function isEnemyKind(value: string): value is EnemyKind {
+  return ENEMY_ORDER.some((kind) => kind === value);
+}
+
+export function loadEnemyKnowledge(): EnemyKnowledgeState {
+  const kills = Object.fromEntries(ENEMY_ORDER.map((kind) => [kind, 0])) as Record<EnemyKind, number>;
+  let prestigeAwarded: EnemyKind[] = [];
+  try {
+    const raw = localStorage.getItem(ENEMY_KNOWLEDGE_STORAGE_KEY);
+    if (raw) {
+      const parsed: unknown = JSON.parse(raw);
+      if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
+        const data = parsed as { kills?: unknown; prestigeAwarded?: unknown };
+        if (data.kills && typeof data.kills === "object" && !Array.isArray(data.kills)) {
+          for (const kind of ENEMY_ORDER) {
+            const value = (data.kills as Record<string, unknown>)[kind];
+            if (typeof value === "number" && Number.isSafeInteger(value) && value >= 0) kills[kind] = value;
+          }
+        }
+        if (Array.isArray(data.prestigeAwarded)) {
+          prestigeAwarded = [...new Set(data.prestigeAwarded.filter(
+            (kind): kind is EnemyKind => typeof kind === "string" && isEnemyKind(kind),
+          ))];
+        }
+      }
+    }
+  } catch {
+    /* Corrupt or unavailable local storage starts with an empty journal. */
+  }
+  return { kills, prestigeAwarded, prestigePoints: prestigeAwarded.length };
+}
+
+function writeEnemyKnowledge(state: EnemyKnowledgeState): void {
+  try {
+    localStorage.setItem(ENEMY_KNOWLEDGE_STORAGE_KEY, JSON.stringify({
+      kills: state.kills,
+      prestigeAwarded: state.prestigeAwarded,
+    }));
+  } catch {
+    /* Keep codex storage behavior consistent when local storage is unavailable. */
+  }
+}
+
+export function enemyKnowledgeProgress(kills: number): EnemyKnowledgeProgress {
+  const safeKills = Number.isSafeInteger(kills) && kills > 0 ? kills : 0;
+  let level = 0;
+  for (const threshold of ENEMY_KNOWLEDGE_THRESHOLDS) {
+    if (safeKills < threshold) break;
+    level += 1;
+  }
+  const currentThreshold = level === 0 ? 0 : ENEMY_KNOWLEDGE_THRESHOLDS[level - 1]!;
+  const nextThreshold = ENEMY_KNOWLEDGE_THRESHOLDS[level] ?? null;
+  const percent = nextThreshold === null
+    ? 100
+    : Math.max(0, Math.min(100, ((safeKills - currentThreshold) / Math.max(1, nextThreshold - currentThreshold)) * 100));
+  return {
+    kills: safeKills,
+    level,
+    label: level === 0 ? "Nezaznamenán" : ENEMY_KNOWLEDGE_LABELS[level - 1]!,
+    currentThreshold,
+    nextThreshold,
+    percent,
+    maxed: nextThreshold === null,
+  };
+}
+
+export function recordEnemyKill(kind: EnemyKind): { progress: EnemyKnowledgeProgress; prestigeAwarded: boolean } {
+  const state = loadEnemyKnowledge();
+  state.kills[kind] += 1;
+  const progress = enemyKnowledgeProgress(state.kills[kind]);
+  const prestigeAwarded = progress.maxed && !state.prestigeAwarded.includes(kind);
+  if (prestigeAwarded) state.prestigeAwarded.push(kind);
+  writeEnemyKnowledge(state);
+  return { progress, prestigeAwarded };
 }
 
 /**

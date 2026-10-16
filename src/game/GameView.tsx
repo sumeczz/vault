@@ -1,5 +1,6 @@
-import { useEffect, useRef, useState, type CSSProperties, type PointerEvent as ReactPointerEvent, type ReactNode } from "react";
+import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { Link } from "@tanstack/react-router";
+import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import {
   BarChart3,
   BookOpen,
@@ -52,7 +53,8 @@ import {
   clearInjectedKeys,
   sampleInput,
   setInjectedKeys,
-  setTouchAim,
+  setAutoFireSetting,
+  setTouchControlsEnabled,
   setTouchMove,
   tapAbility,
   tapDash,
@@ -108,7 +110,17 @@ import type { WeaponDef } from "./weapons";
 import { loadSave, recordRun, resetProgress, unlockSector, type SaveData } from "./save";
 import { GLOSSARY } from "./glossary";
 import { ACHIEVEMENTS, achievementDef, loadAchievements, profileStats, unlockAchievements, type AchievementId } from "./achievements";
-import { CODEX_CATEGORIES, codexBonus, codexEntries, codexProgress, formatCodexBonus, loadCodex } from "./codex";
+import {
+  CODEX_CATEGORIES,
+  codexBonus,
+  codexEntries,
+  codexProgress,
+  ENEMY_KNOWLEDGE_THRESHOLDS,
+  enemyKnowledgeProgress,
+  formatCodexBonus,
+  loadCodex,
+  loadEnemyKnowledge,
+} from "./codex";
 import { MOD_INV_MAX, Run, type GameEvent, type HudSnap, type StatsSnap } from "./sim";
 import { getDifficulty, resetDifficulty, setDifficulty, type DifficultySettings } from "./difficulty";
 import { dailySeed, loadDaily, recordDaily, weeklySeed, loadWeekly, recordWeekly, type DailyRecord, type WeeklyRecord } from "./daily";
@@ -132,7 +144,7 @@ import {
   saveArmory,
 } from "./mods";
 import { affixDef } from "./bestiary";
-import { BOSS_PHASE_NAMES, ENEMY_ATTACK_LABEL, ENEMY_ATTACK, ENEMY_NAME, ENEMY_SPAWN, type BossPhase } from "./bestiary";
+import { BOSS_PHASE_NAMES, ENEMY_ATTACK_LABEL, ENEMY_ATTACK, ENEMY_NAME, ENEMY_ORDER, ENEMY_SPAWN, type BossPhase } from "./bestiary";
 import { mutMult } from "./mutators";
 import { RARITY_COLOR, RARITY_LABEL, ARCHETYPE_LABEL, ELEMENT_COLOR, MAGNET_R, type ArchetypeId, type Element, type LootOffer, type Rarity, type Weapon } from "./types";
 import { dpsEstimate, starterWeapon, weaponBehaviorsList } from "./weapons";
@@ -168,6 +180,7 @@ function rarityClass(r: Rarity): string {
 }
 
 export function GameView() {
+  const reduceMotion = useReducedMotion();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const wrapRef = useRef<HTMLDivElement>(null);
   const runRef = useRef<Run | null>(null);
@@ -253,6 +266,14 @@ export function GameView() {
   const [content, setContent] = useState<GameContentCatalogs>(() => defaultGameContent());
   const [mutedState, setMutedState] = useState(false);
   const [touch, setTouch] = useState(false);
+  const [autoFire, setAutoFire] = useState(() => {
+    if (typeof window === "undefined") return false;
+    try {
+      return localStorage.getItem("vaultbreak.controls.auto-fire") === "1";
+    } catch {
+      return false;
+    }
+  });
   const [weaponPick, setWeaponPick] = useState<number | null>(null);
   const [boot, setBoot] = useState(false);
   const [freshAchievements, setFreshAchievements] = useState<AchievementId[]>([]);
@@ -281,6 +302,23 @@ export function GameView() {
     document.addEventListener("visibilitychange", onVis);
     return () => document.removeEventListener("visibilitychange", onVis);
   }, []);
+
+  useEffect(() => {
+    setAutoFireSetting(autoFire);
+    try {
+      localStorage.setItem("vaultbreak.controls.auto-fire", autoFire ? "1" : "0");
+    } catch {
+      /* Keep the in-memory preference for this session if storage is unavailable. */
+    }
+  }, [autoFire]);
+
+  useEffect(() => {
+    setTouchControlsEnabled(touch);
+    return () => {
+      setTouchControlsEnabled(false);
+      setTouchMove(0, 0, false);
+    };
+  }, [touch]);
 
   // Tutorial: sleduj viděné obrazovky; příchod do báze návod uzavře.
   useEffect(() => {
@@ -687,18 +725,29 @@ export function GameView() {
           />
         )}
         {touch && screen === "playing" && <TouchLayer onCharacter={() => setPanelAndSave(panel === "char" ? null : "char")} />}
-        {(screen === "playing" || screen === "paused") && panel && hud && stats && (
-          <OverviewPanel
-            tab={panel}
-            onTab={(t) => setPanelAndSave(t)}
-            onClose={() => setPanelAndSave(null)}
-            hud={hud}
-            stats={stats}
-            canWorkshop={canOpenRunWorkshop(hud)}
-            onSocket={socketMod}
-            onUnsocket={unsocketMod}
-          />
-        )}
+        <AnimatePresence mode="wait" initial={false}>
+          {(screen === "playing" || screen === "paused") && panel && hud && stats && (
+            <motion.div
+              key={panel}
+              className="absolute inset-0 z-30"
+              initial={reduceMotion ? false : { opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={reduceMotion ? { opacity: 0 } : { opacity: 0, y: 8 }}
+              transition={{ duration: reduceMotion ? 0 : 0.16, ease: "easeOut" }}
+            >
+              <OverviewPanel
+                tab={panel}
+                onTab={(t) => setPanelAndSave(t)}
+                onClose={() => setPanelAndSave(null)}
+                hud={hud}
+                stats={stats}
+                canWorkshop={canOpenRunWorkshop(hud)}
+                onSocket={socketMod}
+                onUnsocket={unsocketMod}
+              />
+            </motion.div>
+          )}
+        </AnimatePresence>
         {(screen === "playing" || screen === "paused") && <ToastFeed toasts={toasts} />}
         {screen === "playing" && !tutorialDone && tutStep >= 0 ? (
           <div className="pointer-events-none absolute inset-x-0 top-44 flex justify-center px-4">
@@ -745,6 +794,9 @@ export function GameView() {
               saveArmory(a);
             }}
             muted={mutedState}
+            autoFire={autoFire}
+            showAutoFire={!touch}
+            onAutoFire={setAutoFire}
             onMute={() => {
               const next = !mutedState;
               setMuted(next);
@@ -815,6 +867,9 @@ export function GameView() {
         {screen === "paused" && (
           <PauseOverlay
             hud={hud}
+            autoFire={autoFire}
+            showAutoFire={!touch}
+            onAutoFire={setAutoFire}
             onResume={() => {
               setScreen("playing");
               screenRef.current = "playing";
@@ -1615,6 +1670,9 @@ function Menu({
   onArmory,
   muted,
   onMute,
+  autoFire,
+  showAutoFire,
+  onAutoFire,
 }: {
   seed: string;
   onSeed: (s: string) => void;
@@ -1636,6 +1694,9 @@ function Menu({
   onArmory: (a: ArchetypeId | null) => void;
   muted: boolean;
   onMute: () => void;
+  autoFire: boolean;
+  showAutoFire: boolean;
+  onAutoFire: (enabled: boolean) => void;
 }) {
   const unlocked = Math.max(1, save.maxSector);
   const blueprints = loadBlueprints();
@@ -1699,6 +1760,7 @@ function Menu({
             <span className="font-mono text-[11px] text-subtle">SEKTOR {startSector}{torment ? " · TORMENT" : ""}</span>
           </summary>
           <div className="space-y-3 border-t border-border p-3">
+        {showAutoFire ? <AutoFireToggle enabled={autoFire} onChange={onAutoFire} /> : null}
         <label className="flex flex-col gap-1.5 text-left">
           <span className="flex items-center gap-1.5 text-xs font-medium tracking-wide text-subtle">
             <Dices className="size-4" />
@@ -1898,7 +1960,7 @@ function Menu({
           </button>
         )}
             <p className="mt-2 text-[11px] leading-relaxed text-subtle">
-              Reset smaže profilový postup, level a XP postavy, talenty, materiály, vyrobené zbraně, kodex, achievementy, odznaky, výzvy i blueprinty. Nastavení a zvuk zůstanou.
+              Reset smaže profilový postup, level a XP postavy, talenty, materiály, vyrobené zbraně, Kodex včetně znalostí a prestiže, achievementy, odznaky, výzvy i blueprinty. Nastavení a zvuk zůstanou.
             </p>
           </div>
         </details>
@@ -1941,9 +2003,9 @@ function CharacterPanel({ save, character }: { save: SaveData; character: Charac
             aria-valuemax={atCap ? 1 : need}
             aria-valuenow={atCap ? 1 : character.xp}
           >
-            <div
+            <AnimatedFill
               className="vb-xp-fill h-full rounded-full"
-              style={{ width: atCap ? "100%" : `${Math.min(100, (character.xp / Math.max(1, need)) * 100)}%` }}
+              value={atCap ? 100 : (character.xp / Math.max(1, need)) * 100}
             />
           </div>
           <p className="mt-0.5 font-mono text-[11px] tabular-nums text-subtle">
@@ -2008,7 +2070,7 @@ function CestaScreen({ save, onCodex }: { save: SaveData; onCodex: () => void })
           </p>
         </div>
         <div className="h-1.5 overflow-hidden rounded-full bg-elevated" role="progressbar" aria-label="Postup odemykání" aria-valuemin={0} aria-valuemax={UNLOCKS.length} aria-valuenow={doneCount}>
-          <div className="h-full rounded-full bg-ice" style={{ width: `${(doneCount / UNLOCKS.length) * 100}%` }} />
+          <AnimatedFill className="h-full rounded-full bg-ice" value={(doneCount / UNLOCKS.length) * 100} />
         </div>
         <p className="text-right font-mono text-[11px] tabular-nums text-subtle">{doneCount}/{UNLOCKS.length} odemčeno</p>
         <div className="space-y-4">
@@ -2190,9 +2252,12 @@ function SlovnicekScreen({ onBack }: { onBack: () => void }) {
 }
 
 function CodexScreen() {
-  const unlocked = loadCodex();  const entries = codexEntries();
+  const unlocked = loadCodex();
+  const knowledge = loadEnemyKnowledge();
+  const entries = codexEntries();
   const progress = codexProgress(unlocked, entries);
   const total = codexBonus(unlocked, entries);
+  const reduceMotion = useReducedMotion();
   return (
     <div className="vb-vignette absolute inset-0 flex flex-col items-center overflow-y-auto px-4 pt-[max(12px,env(safe-area-inset-top))] pb-28">
       <div className="flex w-full max-w-md flex-col gap-3">
@@ -2213,6 +2278,54 @@ function CodexScreen() {
           </h2>
           <p className="mt-1 text-xs leading-relaxed text-muted">{formatCodexBonus(total)}</p>
         </div>
+        <section className="overflow-hidden rounded-2xl border border-rarity-epic/40 bg-surface">
+          <header className="flex items-center justify-between gap-3 border-b border-border px-3 py-2.5">
+            <div className="flex min-w-0 items-center gap-2">
+              <span className="flex size-8 shrink-0 items-center justify-center rounded-lg border border-rarity-epic/40 bg-rarity-epic/10 text-rarity-epic">
+                <Skull className="size-4" />
+              </span>
+              <span className="min-w-0">
+                <span className="block font-mono text-[11px] tracking-[0.16em] text-subtle">BESTIÁŘ · ZNALOSTI</span>
+                <span className="block text-xs text-muted">Znalost se ukládá trvale pro každý druh.</span>
+              </span>
+            </div>
+            <span className="flex shrink-0 items-center gap-1.5 rounded-lg border border-rarity-epic/40 bg-rarity-epic/10 px-2 py-1 font-mono text-xs tabular-nums text-rarity-epic" title="Body prestiže se nyní pouze ukládají; využití přijde v endgame.">
+              <Crown className="size-3.5" />{knowledge.prestigePoints} PP
+            </span>
+          </header>
+          <ul className="grid grid-cols-1 gap-1.5 p-2 sm:grid-cols-2">
+            {ENEMY_ORDER.map((kind) => {
+              const record = enemyKnowledgeProgress(knowledge.kills[kind]);
+              return (
+                <li key={kind} title={`${ENEMY_NAME[kind]}: ${record.kills} zabití, znalost ${record.level}/${ENEMY_KNOWLEDGE_THRESHOLDS.length}${record.maxed ? " (maximum)" : `, další úroveň při ${record.nextThreshold}`}`} className="min-w-0 rounded-lg border border-border/70 bg-elevated/60 p-2">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="truncate text-xs font-medium text-fg">{ENEMY_NAME[kind]}</span>
+                    <span className="shrink-0 font-mono text-[11px] tabular-nums text-muted">{record.kills.toLocaleString("cs-CZ")} zabití</span>
+                  </div>
+                  <div className="mt-1 flex items-center justify-between gap-2 text-[11px]">
+                    <span className={`min-w-0 truncate ${record.maxed ? "text-rarity-epic" : "text-accent-blue"}`}>
+                      ZNALOST {record.level}/{ENEMY_KNOWLEDGE_THRESHOLDS.length} · {record.label}
+                    </span>
+                    <span className="shrink-0 text-[11px] text-subtle">
+                      {record.maxed ? "MAX" : `CÍL ${record.nextThreshold}`}
+                    </span>
+                  </div>
+                  <div className="mt-1.5 h-1 overflow-hidden rounded-full bg-bg">
+                    <motion.div
+                      className={`h-full origin-left rounded-full ${record.maxed ? "bg-rarity-epic" : "bg-accent-blue"}`}
+                      initial={reduceMotion ? false : { scaleX: 0 }}
+                      animate={{ scaleX: record.percent / 100 }}
+                      transition={{ duration: reduceMotion ? 0 : 0.45, ease: "easeOut" }}
+                    />
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+          <p className="border-t border-border px-3 py-2 text-[11px] leading-relaxed text-subtle">
+            Každý druh vyžaduje až {ENEMY_KNOWLEDGE_THRESHOLDS.at(-1)?.toLocaleString("cs-CZ")} zabití. Max. znalost udělí 1 prestižní bod; body zatím nemají bojový bonus a jsou určeny pro budoucí endgame.
+          </p>
+        </section>
         <div className="space-y-2">
           {CODEX_CATEGORIES.map((cat, catIndex) => {
             const items = entries.filter((e) => e.cat === cat.id);
@@ -2613,16 +2726,14 @@ function Hud({ hud, activePanel, onPause, onBattle, onStats, onCharacter, onStar
             <span className={lowHp ? "font-semibold text-danger" : "text-fg"}>{Math.ceil(hud.hp)}/{Math.ceil(hud.maxHp)} HP</span>
           </div>
           <div className="mt-0.5 h-1.5 overflow-hidden rounded-full bg-elevated/90">
-            <div className="h-full rounded-full bg-danger transition-[width] duration-150" style={{ width: `${hp * 100}%` }} />
+            <AnimatedFill className="h-full rounded-full bg-danger" value={hp * 100} />
           </div>
           <div className="mt-1.5 h-1.5 overflow-hidden rounded-full border border-border/60 bg-elevated/90 shadow">
-            <div
+            <AnimatedFill
               className="vb-xp-fill h-full rounded-full"
-              style={{
-                width: characterAtCap
-                  ? "100%"
-                  : `${Math.min(100, (characterRunProgress.xp / Math.max(1, xpForNextLevel(characterRunProgress.level))) * 100)}%`,
-              }}
+              value={characterAtCap
+                ? 100
+                : (characterRunProgress.xp / Math.max(1, xpForNextLevel(characterRunProgress.level))) * 100}
             />
           </div>
           <div className="mt-1 flex items-center gap-2 font-mono text-xs tabular-nums text-subtle">
@@ -2730,11 +2841,9 @@ function Hud({ hud, activePanel, onPause, onBattle, onStats, onCharacter, onStar
             aria-valuemax={hud.ability.cooldown}
             aria-valuenow={Math.max(0, hud.ability.cooldown - hud.abilityCd)}
           >
-            <div
-              className="h-full rounded-full bg-ice transition-[width] duration-150"
-              style={{
-                width: `${(1 - Math.min(1, hud.abilityCd / Math.max(0.01, hud.ability.cooldown))) * 100}%`,
-              }}
+            <AnimatedFill
+              className="h-full rounded-full bg-ice"
+              value={(1 - Math.min(1, hud.abilityCd / Math.max(0.01, hud.ability.cooldown))) * 100}
             />
           </div>
           <div className="mt-1 font-mono text-[11px] tabular-nums text-subtle" title={`Přebíjení schopnosti (F / Shift): ${hud.ability.desc}`}>
@@ -3255,7 +3364,7 @@ function StatsBody({ stats, activeSlot, hud }: { stats: StatsSnap; activeSlot: n
                     {c.done ? <span className="text-rarity-uncommon">ODMĚNA +{c.reward}</span> : `${c.progress}/${c.goal}`}
                   </span>
                 </div>
-                {!c.done ? <div className="mt-1 h-1 overflow-hidden rounded-full bg-bg"><div className="h-full rounded-full bg-accent-blue" style={{ width: `${Math.max(0, Math.min(100, (c.progress / Math.max(1, c.goal)) * 100))}%` }} /></div> : null}
+                {!c.done ? <div className="mt-1 h-1 overflow-hidden rounded-full bg-bg"><AnimatedFill className="h-full rounded-full bg-accent-blue" value={(c.progress / Math.max(1, c.goal)) * 100} /></div> : null}
               </li>
             ))}
           </ul>
@@ -3558,12 +3667,18 @@ function CharBody({ hud, stats }: { hud: HudSnap; stats: StatsSnap }) {
 
 function PauseOverlay({
   hud,
+  autoFire,
+  showAutoFire,
+  onAutoFire,
   onResume,
   onQuit,
   muted,
   onMute,
 }: {
   hud: HudSnap | null;
+  autoFire: boolean;
+  showAutoFire: boolean;
+  onAutoFire: (enabled: boolean) => void;
   onResume: () => void;
   onQuit: () => void;
   muted: boolean;
@@ -3591,6 +3706,7 @@ function PauseOverlay({
           </ul>
         ) : null}
         <div className="mt-5 flex flex-col gap-2.5">
+          {showAutoFire ? <AutoFireToggle enabled={autoFire} onChange={onAutoFire} /> : null}
           <button type="button" onClick={onResume} className="vb-btn-primary">
             <Play className="size-5" />
             Pokračovat
@@ -3614,6 +3730,48 @@ function PauseOverlay({
         </div>
       </div>
     </div>
+  );
+}
+
+function AutoFireToggle({ enabled, onChange }: { enabled: boolean; onChange: (enabled: boolean) => void }) {
+  const reduceMotion = useReducedMotion();
+  return (
+    <motion.button
+      type="button"
+      role="switch"
+      aria-checked={enabled}
+      onClick={() => onChange(!enabled)}
+      whileTap={reduceMotion ? undefined : { scale: 0.98 }}
+      className="flex min-h-12 items-center justify-between gap-3 rounded-xl border border-border bg-elevated/70 px-3 text-left"
+    >
+      <span className="flex min-w-0 items-center gap-2">
+        <Crosshair className={`size-4 shrink-0 ${enabled ? "text-accent-blue" : "text-subtle"}`} />
+        <span>
+          <span className="block text-xs font-medium text-fg">Automatická střelba</span>
+          <span className="block text-[11px] text-muted">Míření podle směru pohybu</span>
+        </span>
+      </span>
+      <span className={`relative h-6 w-11 shrink-0 rounded-full border transition-colors ${enabled ? "border-accent-blue bg-accent-blue/30" : "border-border bg-bg"}`}>
+        <motion.span
+          className={`absolute top-0.5 size-4 rounded-full ${enabled ? "bg-accent-blue" : "bg-muted"}`}
+          animate={{ x: enabled ? 22 : 2 }}
+          transition={{ duration: reduceMotion ? 0 : 0.14 }}
+        />
+      </span>
+    </motion.button>
+  );
+}
+
+function AnimatedFill({ value, className }: { value: number; className: string }) {
+  const reduceMotion = useReducedMotion();
+  const boundedValue = Math.max(0, Math.min(100, value));
+  return (
+    <motion.div
+      className={className}
+      initial={false}
+      animate={{ width: `${boundedValue}%` }}
+      transition={{ duration: reduceMotion ? 0 : 0.2, ease: "easeOut" }}
+    />
   );
 }
 
@@ -4125,8 +4283,7 @@ function EndOverlay({
 function TouchLayer({ onCharacter }: { onCharacter: () => void }) {
   return (
     <div className="pointer-events-none absolute inset-0">
-      <Stick side="left" onChange={(x, y, a) => setTouchMove(x, y, a)} />
-      <Stick side="right" onChange={(x, y, a) => setTouchAim(x, y, a)} />
+      <TouchJoystick />
       <div className="pointer-events-auto absolute right-4 bottom-36 flex flex-col gap-2" style={{ touchAction: "none" }}>
         <button
           type="button"
@@ -4168,73 +4325,48 @@ function TouchLayer({ onCharacter }: { onCharacter: () => void }) {
   );
 }
 
-function Stick({
-  side,
-  onChange,
-}: {
-  side: "left" | "right";
-  onChange: (x: number, y: number, active: boolean) => void;
-}) {
-  const origin = useRef({ x: 0, y: 0, id: -1 });
-  const [knob, setKnob] = useState({ x: 0, y: 0, show: false, ox: 0, oy: 0 });
-
-  function onDown(e: ReactPointerEvent<HTMLDivElement>) {
-    // Jedna packa = jeden prst; dalsi prst na stejne pacce ignoruj (multitouch patri druhe pacce).
-    if (origin.current.id !== -1) return;
-    try {
-      (e.currentTarget as HTMLDivElement).setPointerCapture(e.pointerId);
-    } catch {
-      /* iOS bez capture — pointer udalosti chodi i tak */
-    }
-    origin.current = { x: e.clientX, y: e.clientY, id: e.pointerId };
-    setKnob({ x: 0, y: 0, show: true, ox: e.clientX, oy: e.clientY });
-    onChange(0, 0, true);
-  }
-  function onMove(e: ReactPointerEvent<HTMLDivElement>) {
-    if (origin.current.id !== e.pointerId) return;
-    const dx = e.clientX - origin.current.x;
-    const dy = e.clientY - origin.current.y;
-    const max = 46;
-    const m = Math.hypot(dx, dy);
-    const k = m > max ? max / m : 1;
-    const x = (dx * k) / max;
-    const y = (dy * k) / max;
-    setKnob((s) => ({ ...s, x: dx * k, y: dy * k }));
-    onChange(x, y, true);
-  }
-  function onUp(e: ReactPointerEvent<HTMLDivElement>) {
-    if (origin.current.id !== e.pointerId) return;
-    origin.current.id = -1;
-    setKnob({ x: 0, y: 0, show: false, ox: 0, oy: 0 });
-    onChange(0, 0, false);
-  }
-
+function TouchJoystick() {
+  const zoneRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const zone = zoneRef.current;
+    if (!zone) return;
+    let cancelled = false;
+    let destroyJoystick: (() => void) | null = null;
+    void import("nipplejs").then(({ default: nipplejs }) => {
+      if (cancelled) return;
+      const joystick = nipplejs.create({
+        zone,
+        mode: "static",
+        position: { left: "92px", bottom: "96px" },
+        size: 112,
+        threshold: 0.12,
+        color: { front: "rgba(180, 205, 222, 0.9)", back: "rgba(32, 48, 62, 0.42)" },
+        restOpacity: 0.42,
+        restJoystick: true,
+        multitouch: false,
+        maxNumberOfJoysticks: 1,
+      });
+      joystick.on("move", (event) => {
+        setTouchMove(event.data.vector.x, event.data.vector.y, true);
+      });
+      joystick.on("end", () => setTouchMove(0, 0, false));
+      destroyJoystick = () => joystick.destroy();
+    }).catch((error: unknown) => {
+      console.error("[VaultBreak] Failed to initialize touch joystick", error);
+    });
+    return () => {
+      cancelled = true;
+      destroyJoystick?.();
+      setTouchMove(0, 0, false);
+    };
+  }, []);
   return (
     <div
-      className={`pointer-events-auto absolute bottom-0 top-1/3 ${side === "left" ? "left-0 w-[48%]" : "right-0 w-[52%]"}`}
-      style={{ touchAction: "none" }}
-      onPointerDown={onDown}
-      onPointerMove={onMove}
-      onPointerUp={onUp}
-      onPointerCancel={onUp}
-      onContextMenu={(e) => e.preventDefault()}
-    >
-      {knob.show ? (
-        <div
-          className="pointer-events-none absolute size-24 -translate-x-1/2 -translate-y-1/2 rounded-full border border-border bg-surface/30"
-          style={{ left: knob.ox, top: knob.oy }}
-        >
-          <div
-            className="absolute left-1/2 top-1/2 size-11 -translate-x-1/2 -translate-y-1/2 rounded-full bg-accent/80"
-            style={{ transform: `translate(calc(-50% + ${knob.x}px), calc(-50% + ${knob.y}px))` }}
-          />
-        </div>
-      ) : (
-        <div
-          className={`pointer-events-none absolute bottom-10 size-24 rounded-full border border-border/80 bg-surface/20 ${side === "left" ? "left-8" : "right-24"}`}
-        />
-      )}
-    </div>
+      ref={zoneRef}
+      className="pointer-events-auto absolute bottom-0 left-0 top-1/2 w-[52%]"
+      style={{ touchAction: "none", position: "absolute" }}
+      aria-label="Virtuální joystick pohybu"
+    />
   );
 }
 

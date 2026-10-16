@@ -1,5 +1,26 @@
 # Changelog
 
+## Znalost nepřátel, mobilní ovládání a systémová dokumentace (17. 10. 2026)
+
+- **Kodex a prestiž**: každý druh nepřítele má samostatný počet zabití a šest
+  úrovní znalosti (1/10/50/200/750/2 000). Max. znalost jednorázově připíše
+  1 prestižní bod. Body se ukládají, zatím se neutrácejí a nedávají bojový
+  bonus; reset herního postupu je smaže. Běžné položky Kodexu a jejich
+  existující statistické bonusy zůstávají oddělené.
+- **Touch ovládání**: odstraněn pravý joystick. Jediný levý NippleJS joystick
+  pohybuje postavou; směr pohybu určuje míření a mobil vždy automaticky střílí.
+  Desktop auto-fire má přepínač v nastavení expedice a pauze a preference se
+  ukládá lokálně.
+- **Motion UI**: animované přechody herních přehledů, progress pruhy a přepínač
+  auto-fire respektují `prefers-reduced-motion`.
+- **Dokumentace**: opraveny zastaralé popisy ovládání, grafických assetů,
+  profilu a XP. Přidána [`docs/game-systems-reference.md`](./docs/game-systems-reference.md)
+  s datovými hranicemi, lifecycli, uložišti a vazbami funkcí; aktualizovány
+  pravidla progrese, UI, postavu i další plán.
+- **Ověření**: `npm run typecheck`, `npm test` (162 testů) a `npm run build`
+  prošly. ESLint má 0 chyb a 1 existující upozornění na závislosti hooku
+  v `GameView.tsx`.
+
 ## Produkční úprava: přihlášení, vlny, statistiky (nové)
 
 - **Přihlášení a registrace**: první spuštění vyžaduje přezdívku (2–16 znaků) a 4místný PIN (+ potvrzení); následně jen PIN. Účet je uložen lokálně pro zařízení (`vaultbreak-profile-v1`), nelze obnovit po smazání dat.

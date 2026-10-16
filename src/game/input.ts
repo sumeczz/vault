@@ -4,6 +4,7 @@ export type Actions = {
   aimStickX: number;
   aimStickY: number;
   useStickAim: boolean;
+  autoFire: boolean;
   mouseScreenX: number;
   mouseScreenY: number;
   mouseInside: boolean;
@@ -26,8 +27,9 @@ let prevStats = false;
 let prevCharacter = false;
 
 let touchMove = { x: 0, y: 0, active: false };
-let touchAim = { x: 0, y: 0, active: false };
-let mouse = { x: 0, y: 0, down: false, inside: false };
+const mouse = { x: 0, y: 0, down: false, inside: false };
+let autoFireEnabled = false;
+let touchControlsEnabled = false;
 let dashTap = false;
 let abilityTap = false;
 let swapTap = false;
@@ -73,6 +75,7 @@ export function bindInput(target: HTMLElement): () => void {
     if (document.hidden) keys.clear();
   };
   const onPointer = (e: PointerEvent) => {
+    if (e.pointerType !== "mouse") return;
     const rect = target.getBoundingClientRect();
     mouse.x = e.clientX - rect.left;
     mouse.y = e.clientY - rect.top;
@@ -87,7 +90,8 @@ export function bindInput(target: HTMLElement): () => void {
     if (e.pointerType === "mouse") mouse.down = false;
     onPointer(e);
   };
-  const onLeave = () => {
+  const onLeave = (e: PointerEvent) => {
+    if (e.pointerType !== "mouse") return;
     mouse.inside = false;
     mouse.down = false;
   };
@@ -125,8 +129,12 @@ export function setTouchMove(x: number, y: number, active: boolean): void {
   touchMove = { x, y, active };
 }
 
-export function setTouchAim(x: number, y: number, active: boolean): void {
-  touchAim = { x, y, active };
+export function setAutoFireSetting(enabled: boolean): void {
+  autoFireEnabled = enabled;
+}
+
+export function setTouchControlsEnabled(enabled: boolean): void {
+  touchControlsEnabled = enabled;
 }
 
 export function tapDash(): void {
@@ -179,11 +187,6 @@ export function sampleInput(): Actions {
   let aimStickX = 0;
   let aimStickY = 0;
   let useStickAim = false;
-  if (touchAim.active) {
-    aimStickX = touchAim.x;
-    aimStickY = touchAim.y;
-    useStickAim = Math.hypot(aimStickX, aimStickY) > 0.2;
-  }
   for (const pad of pads) {
     if (!pad) continue;
     const rs = radial(pad.axes[2] ?? 0, pad.axes[3] ?? 0, 0.22);
@@ -201,7 +204,8 @@ export function sampleInput(): Actions {
   const statsHeld = k.has("KeyT");
   const characterHeld = k.has("KeyC");
 
-  let fire = mouse.down || (useStickAim && touchAim.active);
+  const autoFire = autoFireEnabled || touchControlsEnabled;
+  let fire = mouse.down || autoFire;
   for (const pad of pads) {
     if (!pad) continue;
     if (pad.buttons[7]?.pressed || pad.buttons[0]?.pressed) fire = true;
@@ -233,6 +237,7 @@ export function sampleInput(): Actions {
     aimStickX,
     aimStickY,
     useStickAim,
+    autoFire,
     mouseScreenX: mouse.x,
     mouseScreenY: mouse.y,
     mouseInside: mouse.inside,

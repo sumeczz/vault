@@ -13,7 +13,8 @@ Nové sekce se přidávají na konec, existující se nikdy nepřečíslovávaj�
 - **Žádné XP, žádná měna profilu.** Profilová úroveň = `bestLevel` ze save (nejvyšší dosažená
   globální úroveň napříč všemi běhy).
 - `bestLevel` se zapisuje při každém konci běhu (`recordRun` bere maximum). Uložený
-  formát má verzi (`version: 3`); chybějící `bestLevel` se dopočítá z `bestRooms`.
+  formát má aktuálně verzi (`version: 6`); při načtení se chybějící `bestLevel`
+  dopočítá ze staršího `bestRooms`.
   Kumulativní statistiky pro achievementy (`totalKills`, `totalScrap`, `bossesKilled`)
   se přičítají v `recordRun`; chybějící se berou jako 0.
 - Vše ostatní (odemykání, minimum lootu, affixy) se odvozuje funkcí `unlocksForLevel(bestLevel)`.
@@ -293,8 +294,10 @@ mají pro všechny stejné mutátory (fair play).
 - **Nové portály / biomy:** nový záznam v `SECTOR_MODS` + unlock řádek v tabulce §2. Nic víc.
 - **Nové mutátory:** nový záznam v `MUTATORS` (kladný/záporný pár drží poměr 50/50); hodnoty se generují samy.
 - **Nové mody:** nový záznam v `MOD_DEFS` (§23); generování, loot, šrot i UI si ho najdou.
-- **Noví nepřátelé:** nový záznam v `ENEMY_SPAWN` (druh, LVL, váha, cena) + statistiky
-  a tvar; boss se losuje zvlášť a do tabulky nepatří.
+- **Noví nepřátelé:** nový druh musí být přidán do `EnemyKind`, `ENEMY_ORDER`,
+  `ENEMY_NAME`, `ENEMY_SPAWN` (druh, LVL, váha, cena), statistik a tvaru.
+  Přidat i mapování dropů/ikony/znalostní záznam a testy; boss se losuje zvlášť
+  a do tabulky spawnů nepatří.
 - **Karta buildu:** po banku generuje `buildCard.ts` PNG ze snapshotu běhu.
 
 ## 17. Výzvy profilu
@@ -338,6 +341,24 @@ při startu běhu (HP hned do maxima, poškození/rychlost/kritik do výpočtů)
 
 - Nová položka kodexu: nový zdroj v `codexEntries()` + `unlockCodex()` na místě
   prvního výskytu/sebrání. Nic víc.
+- Jednorázový CodexBonus a znalostní body prestiže jsou dvě úložiště a dvě
+  různé odměny; znalostní kill counter nikdy nezvyšuje počet odemčení ani
+  bonus k bojovým statistikám.
+
+### Znalost nepřátel a prestiž
+
+Počty zabití a znalostní úrovně nepřátel se ukládají odděleně od sbírkových
+odemykání pod `vaultbreak.codex.enemy-knowledge.v1`. Zabité kusy se sčítají
+samostatně pro každý druh a úrovně se odemykají při 1, 10, 50, 200, 750 a
+2 000 zabitích. Poslední úroveň je záměrně dlouhodobý cíl.
+
+- Dosažení maximální znalosti daného druhu jednorázově udělí **1 bod prestiže**.
+- Bod se váže k druhu, nemá současný bojový efekt a je vyhrazen budoucímu
+  endgame systému. Opakované zabití po dosažení maxima jej znovu neudělí.
+- Kodex zobrazuje počty zabití, aktuální úroveň a postup k dalšímu prahu;
+  dosud nepoznaní nepřátelé mají úroveň 0. Souhrn PP ukazuje celkový počet.
+- Body prestiže jsou trvalé a záměrně se nemíchají do běžných bonusů Kodexu
+  ani do levelu profilu/postavy.
 
 ## 19. Achievementy
 
@@ -529,3 +550,65 @@ Talenty se nakupují před během; reset vrací body za 30 šrotu + 2 slitiny a
 cena každým resetem stoupá o 20 šrotu + 1 slitinu.
 Podrobné tabulky zdrojů, ceny a stav implementace jsou v
 `docs/character-progression-and-armory.md` §§3–8.
+
+## 26. Systémové napojení a rozšíření
+
+Tato sekce doplňuje pravidla o implementační tok. Podrobný přehled datových
+vlastníků, lifecycle, lokálního úložiště a ovládání je v
+`docs/game-systems-reference.md`.
+
+### 26.1 Oddělené zdroje postupu
+
+- `save.ts` ukládá profilové rekordy a `bestLevel`. `progression.ts` odvozuje
+  unlocky pouze z tohoto maxima; level postavy ani XP z právě probíhajícího
+  běhu nesmějí odemknout položku Cesty před uzavřením běhu.
+- `characters.ts` ukládá aktivní postavu. XP běhu se připisuje až při
+  `finishRun`; každý získaný level přidá jeden talentový bod. Při sestavení
+  dalšího běhu se talentové bonusy předají simulaci jako nastavení.
+- `sim.ts` vlastní dočasné XP, zásilku materiálů, loot, mody, výzvy i stav
+  souboje. Tato běhová vrstva se převede do profilu/postavy jen přes
+  uzavírací tok; ukončení bez dokončení nezapočítá zásilku.
+
+### 26.2 Kill událost jako sdílený bod integrace
+
+Po validním zabití nepřítele se vykonávají samostatné výstupy:
+
+1. běhové kill/XP/statistiky a případný postup výzvy;
+2. jednorázové odemknutí položky Kodexu, jehož CodexBonus se uplatňuje při
+   konstrukci dalšího běhu;
+3. navýšení trvalého počítadla znalosti v
+   `vaultbreak.codex.enemy-knowledge.v1`;
+4. progres blueprintu používaného pro starší profilovou zbrojnici;
+5. dočasný drop fragmentů a materiálů do zásilky postavy.
+
+Jde o různé odměny. Změna jedné nesmí duplicitně připsat ostatní. Knowledge
+prahy jsou 1/10/50/200/750/2 000 zabití na druh. Pouze první dosažení maxima
+každého druhu přidělí 1 PP; prestiž se ukládá, ale zatím ji nelze utratit.
+
+### 26.3 Vstupní a prezentační tok
+
+- `input.ts` převádí klávesnici, myš, gamepad a joystick na jediný `Actions`
+  objekt pro simulaci. Mobilní režim zapíná `GameView`; auto-fire je na mobilu
+  vynucený a na desktopu volitelný.
+- Je-li auto-fire aktivní a hráč se pohybuje, simulace míří ve směru pohybu;
+  bez pohybu zachová aktuální směr. Jinak zůstává dostupné míření myší či
+  pravým gamepadovým stickem. Odstranění pravého touch sticku nemění gamepad.
+- `HudSnap`/`StatsSnap` jsou projekce simulace pro UI, nikoli další zdroj
+  herních hodnot. Motion přechody/progress prvky pouze animují již vypočtené
+  stavy; `prefers-reduced-motion` nesmí měnit hratelnost.
+
+### 26.4 Rozšíření obsahu
+
+Před přidáním nového nepřítele, zbraně, materiálu, talentu nebo odměny je
+nutné aktualizovat:
+
+- autoritativní definici obsahu a generátor/drop mapování;
+- systémový konzument (simulace, recept, damage bucket nebo profilový unlock),
+  pokud nový obsah mění chování;
+- UI ikonku, přístupný název a zobrazení stavu/nákladů;
+- normalizaci uložených dat, pokud vzniká nové trvalé pole nebo klíč;
+- cílený test pravidla a dokumentaci v tomto souboru či v příslušném
+  specializovaném pravidlovém dokumentu.
+
+Nová funkce se nesmí opírat jen o textový popis: její skutečný efekt musí být
+napojen do `Run`/příslušného vlastníka stavu a ověřen testem.

@@ -146,6 +146,7 @@ export const PROGRESS_KEYS = [
   "vaultbreak-v1",
   "vaultbreak.characters.v1",
   "vaultbreak.codex.v1",
+  "vaultbreak.codex.enemy-knowledge.v1",
   "vaultbreak.achievements.v1",
   "vaultbreak.badges.v1",
   "vaultbreak.daily.v1",

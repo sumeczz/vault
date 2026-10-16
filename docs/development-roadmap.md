@@ -1,51 +1,121 @@
 # Plán dalšího vývoje
 
-Původních deset kroků (navržených po rozšíření správce) a jejich stav k 2. 10. 2026.
-Každý krok lze dokončit samostatně.
+Plán VAULTBREAK aktualizovaný k 17. 10. 2026. Zohledňuje aktuální implementaci
+profilu, postavy, Kodexu, prestiže a ovládání; dokončené etapy nejsou opakovány
+jako budoucí úkoly. Propojení herních systémů je popsáno v
+[`game-systems-reference.md`](./game-systems-reference.md), číselné smlouvy v
+[`progression-rules.md`](./progression-rules.md).
 
-| # | Krok | Stav |
-|---|------|------|
-| 1 | Testy katalogů obsahu | ✅ hotovo (`src/game/game.test.ts`, 57 testů v `npm test`) |
-| 2 | Náhled kořisti ve správci | ✅ hotovo (Simulátor + Dopad) |
-| 3 | Import a export katalogů | ✅ hotovo (záložka Data) |
-| 4 | Validace a bezpečné limity | ✅ hotovo |
-| 5 | Úprava affixů a unikátních zbraní | ✅ hotovo (záložka Affixy) |
-| 6 | Vyvážení schopností a pasivek | ✅ hotovo (Dopad + kontrola formátů + editor obtížnosti) |
-| 7 | Editor místností a vln | ✅ hotovo z dřívějška |
-| 8 | Progrese a ukládání běhů | ✅ hotovo (unlocky, checkpointy, báze-hub, denní + týdenní výzva, výzvy profilu, karta buildu) |
-| 9 | Mobilní a přístupnostní průchod | ✅ hotovo (dotyky, focus, reduced-motion, keyboard pauza + autofocus) |
-| 10 | Předvydávací QA a obsahová dokumentace | ✅ hotovo (full-loop QA, changelog, průvodce, final review 2. 10. 2026) |
+## Stav dokončených základů
 
-Nad rámec plánu přibylo: fáze bosse, synergie elementů, elitní affixy, pity timer,
-unlock systém (`docs/progression-rules.md` §§1–19), pauza před vlnou, stats panel, zvuky a hudba,
-fáze hry a anomálie, Hlubina, kolo štěstí (popup, los na sektor), výzvy profilu, karta buildu.
+| Oblast | Stav |
+|---|---|
+| Content manager | Editor katalogů, validace, simulátor loot/dopadů, obtížnost, import/export katalogu |
+| Profilová progrese | `bestLevel`, Cesta, unlocky LVL 3–30, checkpointy, Torment |
+| Roguelite běh | Seedované sektory/místnosti/vlny, boss fáze, loot, báze, portály, mutátory/anomálie |
+| Postava | Oddělený XP/level (cap 30), talentové body, tři talentové větve a respec |
+| Ekonomika/zbrojnice | Materiálové dropy, fragmenty, recepty, vyrobené startovní zbraně a trvalé komponenty |
+| Kodex | Jednorázová sbírka/CodexBonus odděleně od počtů zabití, šesti znalostních úrovní a prestiže |
+| Další postup | Výzvy, achievementy, odznaky, denní/týdenní seed a místní leaderboard |
+| Rozhraní/ovládání | Ikonové mobile-first stránky, Motion, reduced-motion, jeden touch joystick a volitelný desktop auto-fire |
+| Kvalita | Typecheck, testy herních subsystémů a produkční build procházejí; veškerá nová mobilní input cesta ještě vyžaduje reálné iOS/Android zařízení |
 
-1. **Testy katalogů obsahu**
-   Přidat testy pro validaci, migraci a ukládání zbraní, schopností, pasivek i vah rarit. Ověřit prázdné katalogy, neplatné hodnoty a deterministické generování.
+## Další etapy
 
-2. **Náhled kořisti ve správci**
-   Přidat simulátor, který z aktuální konfigurace vygeneruje sadu nabídek bez spuštění běhu. Ukazovat četnost rarit, typů odměn a DPS zbraní.
+Etapy jsou seřazeny podle závislostí. Body prestiže jsou nyní sbírané a
+trvalé, ale jejich utrácení nezačne, dokud nebude schválen jasný endgame účel
+a ekonomika.
 
-3. **Import a export katalogů**
-   Umožnit stáhnout a načíst JSON katalogy. Přidat verzi formátu, validaci při importu a potvrzení před nahrazením uložených dat.
+### 1. Více postav a třídy — nejbližší funkční rozšíření
 
-4. **Validace a bezpečné limity**
-   Kontrolovat extrémní kombinace statistik, neplatné popisy, nulové součty vah a duplicity. Před uložením zobrazit srozumitelnou chybu nebo varování.
+Dokončit dosud odloženou šestou etapu
+[`character-progression-and-armory.md`](./character-progression-and-armory.md):
 
-5. **Úprava affixů a unikátních zbraní**
-   Rozšířit správce o prefixy, sufixy a unikátní zbraně; umožnit jim nastavit element, statistické modifikátory, chování střel a váhu výskytu.
+- obrazovka výběru a vytvoření postavy, stabilní ID a přejmenování;
+- bezpečné přepnutí aktivní postavy bez přenosu XP, talentů, materiálů,
+  zbraní a komponent;
+- třídy s odlišnou schopností/počáteční výbavou a stromem, ale bez změny
+  profilového `bestLevel` a odemykání Cesty;
+- definovaná pravidla pro vymazání/archivaci postavy, import starého legacy
+  postupu a zachování profilových rekordů;
+- testy pro migraci, hranice inventářů, aktivního character ID, banknutí
+  odměn a denní/týdenní služební pistoli.
 
-6. **Vyvážení schopností a pasivek**
-   Přidat porovnání hodnot při jednotlivých raritách a souhrnný přehled dopadu. Ověřit, že desetinné a procentní hodnoty odpovídají efektu, který simulace aplikuje.
+**Hotovo, když:** lze založit dvě postavy, přepínat mezi nimi a ověřit, že
+žádná postava nepřebírá progres nebo výbavu druhé; starší lokální save se
+načte bez ztráty `bestLevel`.
 
-7. **Editor místností a vln**
-   Zpřístupnit počty a typy nepřátel, pořadí vln, elitní místnosti a boss encounter. Zachovat seed běhu pro opakovatelné testování.
+### 2. Návrh a schválení využití prestiže
 
-8. **Progrese a ukládání běhů**
-   Navrhnout odemykání obsahu, statistiky a případné výzvy. Verzionovat uložené profily a bezpečně migrovat starší lokální data.
+Nejprve připravit návrh endgame prestižního stromu/systému, nikoli rovnou
+utrácení bodů:
 
-9. **Mobilní a přístupnostní průchod**
-   Otestovat správce i hru na úzkém viewportu a dotykovém zařízení. Doplnit ovládání klávesnicí, viditelné focus stavy a omezení pohybu respektující systémovou volbu.
+- určit konkrétní herní účel a odměny; oddělit kosmetické, systémové a
+  bojové výhody;
+- porovnat body za druh (1 PP při 2 000 zabitích) s požadovanou délkou
+  endgame, počtem druhů a možností budoucích resetů;
+- určit, zda prestiž odemyká funkce, uzly nebo alternativní herní styly,
+  a jak zabránit tomu, aby byla povinnou bránou pro běžnou progresi;
+- navrhnout UI, reset/vrácení, migraci a dopad na další třídy;
+- před implementací předložit design ke schválení.
 
-10. **Předvydávací QA a obsahová dokumentace**
-    Automatizovat průchod: start běhu, boj, odměna, reroll, pauza a konec hry. Ověřit produkční build v desktopu i mobilu a doplnit changelog i stručný návod pro hráče.
+**Hotovo, když:** uživatel schválí ekonomiku i pravidla; pak lze plánovat
+implementaci bez změny nynějšího jednorázového udělení PP za druh.
+
+### 3. Vyvážení ekonomiky a znalostního grindu
+
+- přidat deterministické testovací scénáře/simulace pro délku získání XP,
+  receptů a komponent při běžném, elitním a boss dropu;
+- ověřit prahy znalosti 1/10/50/200/750/2 000, jednorázovou prestiž,
+  persistenci a chování po resetu;
+- zkontrolovat vztah profilu, levelu postavy, talentů, komponent a blueprintů,
+  aby se jejich bonusy nesčítaly nechtěně nebo podruhé;
+- změřit očekávaný čas k výrobě každého archetypu a dostupnost prvních
+  materiálů, pak upravit čísla jen se shodou v pravidlech, simulaci i UI.
+
+**Hotovo, když:** tabulky a automatické testy odpovídají simulaci a hráč může
+pochopit náklady/drop zdroje přímo v Kovárně bez skrytých podmínek.
+
+### 4. Ukládání, záloha a vysvětlení lokálního profilu
+
+- vyhodnotit export/import profilového postupu a postavních dat jako ruční
+  lokální zálohu; formát verzovat, validovat a před přepsáním ukázat náhled;
+- jasně zobrazit, že přezdívka/PIN nejsou cloudový účet a postup se
+  nesynchronizuje mezi prohlížeči/zařízeními;
+- testovat nevalidní/částečně poškozená data, starší save, reset a obnovu.
+
+**Závislost:** nejdřív se schválí, zda export/import patří do uživatelského
+rozhraní a jakou přesnou hranici dat má zahrnout; přidání serverového účtu je
+samostatné rozhodnutí, ne součást této etapy.
+
+### 5. Ověření mobilního ovládání a přístupnosti
+
+- ověřit joystick na iOS Safari a Android Chrome: uchopení, vytažení mimo
+  zónu, zrušení dotyku, změna orientace, vícedotyková tlačítka a opuštění hry;
+- ověřit, že auto-fire běží na mobilu vždy, míří podle vektoru pohybu a při
+  zastavení drží poslední záměr; znovu ověřit ruční míření na desktopu;
+- provést průchod klávesnicí, screen reader popisky, focus, reduced-motion,
+  kontrast a 390px layout všech nových stránek/dialogů;
+- opravit pouze potvrzené rozdíly a přidat automatizované regresní testy tam,
+  kde jsou stabilně reprodukovatelné.
+
+**Hotovo, když:** ruční testovací matice zařízení projde bez ztraceného
+vstupu, nechtěného scrollu, horizontálního overflow nebo závislosti na hoveru.
+
+### 6. Produkční a regresní QA
+
+- rozšířit automatizovaný průchod hlavní smyčkou: nový běh → boj → loot /
+  reroll / šrot → bezpečná dílna → báze/portál → banknutí i porážka;
+- ověřit, že profilový save, character save, knowledge, PP, daily/weekly,
+  leaderboard a reset dodržují své storage hranice;
+- před vydáním spustit typecheck, celou sadu testů, lint review, production
+  build i browser QA na desktopu a mobilu;
+- aktualizovat stavové, systémové i pravidlové dokumenty ve stejném PR jako
+  každou změnu herního chování.
+
+## Pravidlo pro změnu plánu
+
+Každá změněná cena, práh, odměna nebo odemykací podmínka se musí aktualizovat
+současně v implementaci, `progression-rules.md`, případně
+`character-progression-and-armory.md`, testech a herním UI. Funkce se nesmí
+označit jako hotová jen na základě dokumentace; vyžaduje běhové ověření.

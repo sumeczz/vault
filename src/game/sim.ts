@@ -41,7 +41,7 @@ import { hashSeed, mulberry32, randRange, stream, type Rng } from "./rng";
 import { mutAdd, mutMult, rollMutators, type RolledMutator } from "./mutators";
 import { applyMods, generateMod, loadBlueprints } from "./mods";
 import { armorFactor, CRIT_CHANCE_CAP, CRIT_MULT_CAP, damageBuckets, PLAYER_ARMOR_CAP } from "./scaling";
-import { codexBonus, codexEntries, formatCodexBonus, loadCodex, unlockCodex, type CodexBonus, type CodexCategory } from "./codex";
+import { codexBonus, codexEntries, formatCodexBonus, loadCodex, recordEnemyKill, unlockCodex, type CodexBonus, type CodexCategory } from "./codex";
 import { CHALLENGES, challengeDef, freshChallengeState, unlockBadge, type ChallengeId, type ChallengeState } from "./challenges";
 import {
   DASH_MAX,
@@ -1581,6 +1581,14 @@ export class Run {
     }
     // Kodex (§18): druh nepřítele + affixy, které nesl + archetyp zbraně v ruce.
     this.noteCodex("enemy", e.kind);
+    const enemyKnowledge = recordEnemyKill(e.kind);
+    if (enemyKnowledge.prestigeAwarded) {
+      this.events.push({
+        kind: "codex",
+        text: "Prestižní bod získán",
+        sub: `${ENEMY_NAME[e.kind]} · dokonalá znalost · +1 prestižní bod`,
+      });
+    }
     for (const a of e.affixes) this.noteCodex("affix", a);
     const held = this.weapons[this.player.slot];
     if (held) this.noteCodex("archetype", held.archetype);
@@ -2245,8 +2253,11 @@ export class Run {
     }
     this.player.dashT = Math.max(0, this.player.dashT - dt);
 
+    let mx = input.moveX;
+    let my = input.moveY;
     let aim = this.player.aim;
-    if (input.useStickAim) aim = Math.atan2(input.aimStickY, input.aimStickX);
+    if (input.autoFire && Math.hypot(mx, my) > 0.12) aim = Math.atan2(my, mx);
+    else if (input.useStickAim) aim = Math.atan2(input.aimStickY, input.aimStickX);
     else if (input.mouseInside) {
       const world = this.screenToWorld(input.mouseScreenX, input.mouseScreenY);
       aim = Math.atan2(world.y - this.player.y, world.x - this.player.x);
@@ -2255,16 +2266,14 @@ export class Run {
 
     const speedMul = (1 + this.passiveSum("haste")) * mutMult(this.mutators, "moveSpeed") * (1 + this.codex.speedPct) * (this.player.dashT > 0 ? DASH_MULT : 1);
     const spd = PLAYER_SPEED * speedMul;
-    let mx = input.moveX;
-    let my = input.moveY;
     if (this.player.dashT > 0 && Math.hypot(mx, my) < 0.1) {
       mx = Math.cos(this.player.aim);
       my = Math.sin(this.player.aim);
     }
     this.player.vx = mx * spd;
     this.player.vy = my * spd;
-    let nx = this.player.x + this.player.vx * dt;
-    let ny = this.player.y + this.player.vy * dt;
+    const nx = this.player.x + this.player.vx * dt;
+    const ny = this.player.y + this.player.vy * dt;
     const p = circleObstacles(nx, ny, PLAYER_R, this.room.obstacles);
     this.player.x = p.x;
     this.player.y = p.y;
@@ -2529,8 +2538,8 @@ export class Run {
       const spd = e.speed * ts;
       e.vx += (mx * spd + sepX * 40 - e.vx) * Math.min(1, 6 * dt);
       e.vy += (my * spd + sepY * 40 - e.vy) * Math.min(1, 6 * dt);
-      let nx = e.x + e.vx * dt;
-      let ny = e.y + e.vy * dt;
+      const nx = e.x + e.vx * dt;
+      const ny = e.y + e.vy * dt;
       const resolved = circleObstacles(nx, ny, e.r, this.room.obstacles);
       e.x = resolved.x;
       e.y = resolved.y;

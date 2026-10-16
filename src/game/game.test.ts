@@ -43,7 +43,18 @@ import { generateRoom } from "./dungeon.ts";
 import { Run, WAVE_BREAK } from "./sim.ts";
 import { ACHIEVEMENTS, earnedAchievements, loadAchievements, profileStats, unlockAchievements } from "./achievements.ts";
 import { GLOSSARY, glossaryDef } from "./glossary.ts";
-import { CODEX_CATEGORIES, SYNERGIES, codexBonus, codexEntries, codexProgress, loadCodex } from "./codex.ts";
+import {
+  CODEX_CATEGORIES,
+  ENEMY_KNOWLEDGE_THRESHOLDS,
+  SYNERGIES,
+  codexBonus,
+  codexEntries,
+  codexProgress,
+  enemyKnowledgeProgress,
+  loadCodex,
+  loadEnemyKnowledge,
+  recordEnemyKill,
+} from "./codex.ts";
 import {
   applyCharacterXp,
   CHARACTER_STORAGE_KEY,
@@ -89,6 +100,7 @@ import {
 } from "./mods.ts";
 import { TUTORIAL_TEXTS, completeTutorial, isTutorialDone, tutorialStepFor } from "./tutorial.ts";
 import type { Actions } from "./input.ts";
+import { sampleInput, setAutoFireSetting, setTouchControlsEnabled, setTouchMove } from "./input.ts";
 
 const NEUTRAL_ACTIONS: Actions = {
   moveX: 0,
@@ -96,6 +108,7 @@ const NEUTRAL_ACTIONS: Actions = {
   aimStickX: 0,
   aimStickY: 0,
   useStickAim: false,
+  autoFire: false,
   mouseScreenX: 400,
   mouseScreenY: 300,
   mouseInside: true,
@@ -107,6 +120,29 @@ const NEUTRAL_ACTIONS: Actions = {
   justStats: false,
   justCharacter: false,
 };
+
+describe("ovládání střelby", () => {
+  it("zapíná auto-fire pro mobil a podle přepínače na desktopu", () => {
+    setTouchMove(0, 0, false);
+    setAutoFireSetting(false);
+    setTouchControlsEnabled(false);
+    assert.equal(sampleInput().fire, false);
+    assert.equal(sampleInput().autoFire, false);
+
+    setTouchControlsEnabled(true);
+    assert.equal(sampleInput().fire, true);
+    assert.equal(sampleInput().autoFire, true);
+
+    setTouchControlsEnabled(false);
+    setAutoFireSetting(true);
+    assert.equal(sampleInput().fire, true);
+    assert.equal(sampleInput().autoFire, true);
+
+    setAutoFireSetting(false);
+    assert.equal(sampleInput().fire, false);
+    assert.equal(sampleInput().autoFire, false);
+  });
+});
 
 const RARITY_ORDER = ["common", "uncommon", "rare", "epic", "legendary", "mythic"] as const;
 
@@ -900,6 +936,23 @@ describe("kodex", () => {
     assert.deepEqual(codexProgress(new Set(["enemy:grunt"]), list), { done: 1, total: 2 });
   });
 
+  it("znalost nepratel ma narustajici prahy a prestiz se udeli pouze jednou", () => {
+    memoryStorage();
+    assert.deepEqual(ENEMY_KNOWLEDGE_THRESHOLDS, [1, 10, 50, 200, 750, 2000]);
+    assert.equal(enemyKnowledgeProgress(749).level, 4);
+    assert.equal(enemyKnowledgeProgress(2000).level, 6);
+    assert.equal(enemyKnowledgeProgress(2000).maxed, true);
+
+    localStorage.setItem(
+      "vaultbreak.codex.enemy-knowledge.v1",
+      JSON.stringify({ kills: { grunt: 1999 }, prestigeAwarded: [] }),
+    );
+    assert.equal(recordEnemyKill("grunt").prestigeAwarded, true);
+    assert.equal(recordEnemyKill("grunt").prestigeAwarded, false);
+    assert.equal(loadEnemyKnowledge().kills.grunt, 2001);
+    assert.equal(loadEnemyKnowledge().prestigePoints, 1);
+  });
+
   it("beh aplikuje bonus pri startu", () => {
     memoryStorage();
     localStorage.setItem("vaultbreak.codex.v1", JSON.stringify(["enemy:grunt", "synergy:toxic"]));
@@ -918,6 +971,7 @@ describe("kodex", () => {
     e.affixes = ["volatile"];
     run.killEnemy(e);
     assert.ok(loadCodex().has("enemy:grunt"));
+    assert.equal(loadEnemyKnowledge().kills.grunt, 1);
     assert.ok(loadCodex().has("affix:volatile"));
     assert.ok(loadCodex().has(`archetype:${run.weapons[run.player.slot]?.archetype}`));
     run.generateLoot();
@@ -1257,6 +1311,7 @@ describe("reset progressu", () => {
     memoryStorage();
     localStorage.setItem("vaultbreak-v1", JSON.stringify({ version: 3, bestKills: 50 }));
     localStorage.setItem("vaultbreak.codex.v1", JSON.stringify(["enemy:grunt"]));
+    localStorage.setItem("vaultbreak.codex.enemy-knowledge.v1", JSON.stringify({ kills: { grunt: 25 }, prestigeAwarded: [] }));
     localStorage.setItem("vaultbreak.achievements.v1", JSON.stringify(["killer-100"]));
     localStorage.setItem("vaultbreak.badges.v1", JSON.stringify(["prvni-krev"]));
     localStorage.setItem("vaultbreak.daily.v1", JSON.stringify({}));
@@ -1271,6 +1326,7 @@ describe("reset progressu", () => {
       "vaultbreak-v1",
       CHARACTER_STORAGE_KEY,
       "vaultbreak.codex.v1",
+      "vaultbreak.codex.enemy-knowledge.v1",
       "vaultbreak.achievements.v1",
       "vaultbreak.badges.v1",
       "vaultbreak.daily.v1",

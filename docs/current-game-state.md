@@ -1,34 +1,50 @@
 # Aktuální stav hry
 
-Stav k 16. 10. 2026.
+Stav k 17. 10. 2026.
+
+Tento dokument je orientační přehled implementovaného produktu. Pravidla a
+propojení jednotlivých subsystémů jsou rozepsána v
+[`game-systems-reference.md`](./game-systems-reference.md); konkrétní čísla
+progrese v [`progression-rules.md`](./progression-rules.md).
 
 ## Přehled
 
 VAULTBREAK je single-player top-down roguelite střílečka běžící v prohlížeči. Herní svět kreslí Canvas; menu, HUD, nabídky kořisti a správce jsou React překryvy. Běh probíhá v sektorech po 10 úrovních: elity ve 3. a 6. úrovni sektoru a boss v 10. úrovni.
 
-## Přihlášení (nový)
+## Lokální profil a přístup
 
-První spuštění zobrazí obrazovku registrace: zadá se přezdívka (2–16 znaků, písmena, čísla, `_ -`) a 4místný PIN (+ potvrzení). Účet se ukládá lokálně pro toto zařízení (`vaultbreak-profile-v1`); nelze obnovit po smazání dat prohlížeče. Při každém dalším spuštění se zobrazí jen výzva k zadání PINu. Bez správného PINu se do hry nedostanete.
+První spuštění vytvoří lokální profil s přezdívkou (2–16 znaků, písmena,
+čísla, `_ -`) a 4místným PINem s potvrzením. Profil se ukládá v
+`vaultbreak-profile-v1` tohoto prohlížeče; další spuštění vyžaduje PIN.
+Jde o lokální vstupní zámek, nikoli o serverový účet, silné zabezpečení nebo
+cloudovou obnovu; smazání úložiště profil odstraní.
 
 ## Hraní
 
 - Pohyb: WASD nebo šipky; na gamepadu levá páčka.
 - Míření a střelba: myš; na gamepadu pravá páčka a spoušť.
 - Dash: mezerník. Schopnost: F nebo Shift. Přepínání zbraní: Q/E. Statistiky: T.
-- Mobilní ovládání používá dotykové vstupy a automatickou střelbu.
-- Dotyk: levá páčka pohyb, pravá páčka míření + automatická střelba, tlačítka schopnost/dash/zbraň. Páčky drží jeden prst (multitouch), gesta prohlížeče (zoom/scroll/callout) jsou ve hře potlačená.
+- Mobilní ovládání používá jediný virtuální joystick vlevo, automatickou
+  střelbu a míření ve směru pohybu. Pravý joystick byl odstraněn; tlačítka pro
+  schopnost, dash, výměnu zbraně a přehled postavy zůstávají vpravo.
+- Na PC míří myš nebo pravá páčka gamepadu. Auto-fire lze zapnout/vypnout
+  v nastavení expedice i v pauze; preference se ukládá lokálně.
+- Dotykové ovládání používá NippleJS; dotykové zóny potlačují gesta stránky.
 - Po vyčištění místnosti se nabídnou tři odměny: zbraně, schopnosti, pasivky nebo léčení. Jednou lze nabídku přehodit.
 - Místo volby lze nabídky **rozebrat na šrot** (hodnota podle rarity). Šrot se utrácí v bázi.
-- Běh končí porážkou hráče nebo dobrovolným banknutím v bázi. Po poražení bosse následuje báze: +50 % zdraví, checkpoint dalšího sektoru, **obchod** (plná oprava, +15 max HP, +1 reroll; ceny rostou se sektorem) a **volba expedice** ze 3 portálů — Kovárna (víc zbraní + reroll), Aréna (lepší loot, boss dává 4 nabídky), Laboratoř (schopnosti/pasivky + medkit + reroll).
-- **Start vlna**: před první vlnou každého sektoru a před 6. vlnou (ELIT, index 5) se v HUD zobrazí tlačítko **Start vlna**. Po kliknutí vlna začne. Ostatní vlny v místnosti naskakují automaticky po 2,5 s pauze s odpočtem v HUD. Hráč má při startu vlny čas otevřít panel přehledu (T) a v záložce **Dílna** nasadit vylepšení do zbraně. Poslední vlna pauzu nemá.
+- Běh končí porážkou hráče nebo dobrovolným banknutím v bázi. Po poražení bosse následuje báze: léčení o 35 % max. HP (50 % při anomálii Klid před bouří), checkpoint dalšího sektoru, obchod podle odemčení a volba z dostupných portálů Laboratoř, Kovárna, Knihovna, Aréna a Tržiště. Účinky portálů i nabídky báze popisuje `progression-rules.md`.
+- **Start vlna**: před první vlnou každého sektoru a před elitní vlnou se
+  zobrazí ruční Start vlna. Ostatní vlny naskakují po 2,5 s. V bezpečné pauze
+  lze otevřít přehled; dílna je dostupná jen bez nepřátel a před další vlnou.
+  Poslední vlna pauzu nemá.
 - V menu lze startovat od každého poraženého sektoru (checkpoint). Vyšší start dává bonus k max. HP a posunutý loot RNG, ne plný build.
 
-Hra obsahuje 16 archetypů zbraní, šest elementů, šest rarit a 16 typů vlastností střel. Zbraně skládají základní statistiky, rarity, prefixy/sufixy a herní chování; vybrané legendární a mýtické dropy mohou být existující unikátní zbraně. Schopnosti a pasivky mají pevné typy efektů, které zpracovává simulace. Statusy nesou elementy (burn/led/jed/šok) a od LVL 6 se kombinují: Toxický výbuch (burn+poison), Křehkost (mráz+šok), Pára (burn+mráz). Elity (od LVL 8) a bossové nesou affixy Hbitý/Pancéřovaný/Třaskavý/Zhoubný. Boss má 3 fáze (Jádro/Hněv/Zuřivost, prahy 70 % a 30 % HP): přechod znamená řev, teleport, adds a zrychlení palby (8→10→12 střel). Loot má pity timer (3 místnosti bez rare+, Veterán 2) a boss minimum rare (Veterán epic).
+Hra obsahuje 16 archetypů zbraní, šest elementů, šest rarit a 16 typů vlastností střel. Zbraně skládají základní statistiky, rarity, prefixy/sufixy a herní chování; vybrané legendární a mýtické dropy mohou být existující unikátní zbraně. Schopnosti a pasivky mají pevné typy efektů, které zpracovává simulace. Statusy nesou elementy (burn/led/jed/šok); od profilového LVL 15 se kombinují v synergie Toxický výbuch (burn+poison), Křehkost (mráz+šok) a Pára (burn+mráz). Elity se objevují od globálního LVL 8; elitní a boss affixy Hbitý/Pancéřovaný/Třaskavý/Zhoubný se odemykají profilovým LVL 20. Boss má 3 fáze (Jádro/Hněv/Zuřivost, prahy 70 % a 30 % HP): přechod znamená řev, teleport, adds a zrychlení palby (8→10→12 střel). Loot pity se spustí po 4 místnostech bez rare+ (po 3 u Veterána); boss má minimum rare, Veterán epic a Hlubina legendary.
 
 ## Progrese a pravidla
 
 Závazný návrh: `docs/progression-rules.md`. Profilový postup = nejlepší dosažená globální
-úroveň běhu (`bestLevel`); odemyká šrot (LVL 3), Kovárnu (6), obchod (9), Arénu (12), synergie (15),
+úroveň běhu (`bestLevel`); odemyká šrot (LVL 3), Kovárnu a Knihovnu (6), obchod (9), Arénu a Tržiště (12), synergie (15),
 elitní affixy (20), Veterána (25) a Torment (30). Zamčené prvky se ukazují
 s požadavkem, menu ukazuje další odemknutí. Pevná čísla báze, rerollů, catch-upu,
 rarity a struktury sektoru: `docs/progression-rules.md` §§6–10. Denní výzva: každý den jeden seed
@@ -59,13 +75,13 @@ stats panelu a v bázi před volbou portálu. Pravidla: `docs/progression-rules.
 
 Tlačítko grafu v HUD (nebo klávesa T) přepíná panel: násobiče obtížnosti (HP/DMG/SPD), vlna a zbývající nepřátelé, hráč (HP, rychlost, armor, DPS a detaily obou zbraní), žijící nepřátelé s HP bary a bestiář celé úrovně (HP / dotek / střela). Hodnoty počítá `Run.statsSnap()` ze stejného `bestiary.ts`, který používá simulace — panel ukazuje vždy přesná čísla. Volba se pamatuje v `localStorage`.
 
-**Detailní přehled statistik** (nový): tlačítko **Statistiky** v menu otevírá celkové statistiky napříč všemi běhy (počet běhů, nejvyšší úroveň, zabití, bossové, šrot, herní čas, přesnost střel, střely, poškození ven/dovnitř, XP level a XP, odemčení). Koncová obrazovka běhu zobrazuje rozšířené statistiky tohoto běhu: úroveň, zabití, čas, DMG ven/dovnitř, přesnost, střely, šrot a dosaženou místnost.
+**Detailní přehled statistik** (nový): tlačítko **Statistiky** v menu otevírá celkové statistiky napříč všemi běhy (počet běhů, nejvyšší úroveň, zabití, bossové, šrot, herní čas, přesnost střel, střely, poškození ven/dovnitř a odemčení). Level a XP aktivní postavy jsou zobrazeny samostatně na stránce Postava. Koncová obrazovka běhu zobrazuje rozšířené statistiky tohoto běhu: úroveň, zabití, čas, DMG ven/dovnitř, přesnost, střely, šrot a dosaženou místnost.
 
-**XP postavy**: XP z boje se dočasně sčítají během běhu a po jeho konci se připíší
-postavě. Nejsou totožná s úrovní účtu: profilové odemykání se nadále řídí
-nejvyšší dosaženou globální úrovní běhu (`bestLevel`) a tabulkou na stránce
-Cesta. Účetní statistiky a checkpointy zůstávají v profilu; character XP,
-talentové body a výbava se ukládají odděleně.
+**XP postavy**: bojové XP se během běhu sčítají dočasně a při porážce nebo
+banknutí se připíší aktivní postavě. Každý level-up do capu 30 udělí talentový
+bod. Profilové odemykání se nadále řídí pouze nejlepší globální úrovní běhu
+(`bestLevel`) a stránkou Cesta. Profilové rekordy/checkpointy a character XP,
+talenty, materiály i vybavení zůstávají oddělené.
 
 **Talenty, materiály a Kovárna**: postava utrácí body za Výdrž (+8 max. HP),
 Balistiku (+3 % poškození zbraní) a Polní sběr (+5 % šance na další běžný
@@ -77,9 +93,21 @@ Zásilka se připíše postavě až po porážce nebo banknutí. Kovárna se ode
 profilovým LVL 6; běžný recept stojí 8 fragmentů, 3 slitiny, 40 šrotu,
 pokročilý 12 fragmentů, 4 slitiny, 2 jádra a 80 šrotu. Vyrobenou zbraň lze
 nasadit na začátek běžného běhu; denní/týdenní výzvy zůstávají u služební
-pistole. Kompletní pravidla a tabulky: `docs/character-progression-and-armory.md`.
+pistole. Komponenty se ukládají na vyrobený archetyp a aplikují se jen na
+startovní zbraň aktivní postavy. Detailní tabulky a návaznosti jsou v
+[`character-progression-and-armory.md`](./character-progression-and-armory.md).
 
-**Grafické assety** (nové): hra podporuje grafické assety přes system `src/game/assets.ts` (loader + `drawAsset` s fallbackem na procedurální kresbu). SVG placeholdery v `public/assets/` (player, 28 nepřátel, projectiley pro 6 elementů, pickupy, environment). Integrováno do `render.ts` pro hráče, nepřátelé, střely a pickupy. Chybějící assety graceful degradují. Manifest v `public/assets/manifest.json`. Implementace je připravena pro nahrazení generovanou grafikou.
+**Kodex — znalosti a prestiž**: vedle běžných odemčení Kodex eviduje počet
+zabití každého nepřítele a šest znalostních úrovní při 1/10/50/200/750/2 000
+zabitích. Maximum druhu jednorázově udělí 1 PP, který se ukládá, ale zatím
+nemá herní účinek. Tento žurnál je oddělen od CodexBonus; běžné odemčené
+položky dál přidávají stávající malé trvalé statistické bonusy. Reset postupu
+maže obě části Kodexu.
+
+**Grafika**: herní DOM používá typované mapování ikon z
+`src/game/ui-icons.tsx` a Lucide. Canvas vykreslování je v `render.ts`;
+zastaralý samostatný asset-loader/SVG placeholder systém není součástí
+aktuální architektury.
 
 ## Zvuk
 
@@ -105,22 +133,25 @@ dialogy, low-HP vignette, pulzující BOSS odznak a banner odpočtu vlny. Animac
 
 ## Technické uspořádání
 
-- `src/game/GameView.tsx`: obrazovky hry, input a vytvoření běhu s nastavením správce. Obsahuje auth bránu (přezdívka + PIN), tlačítko Start vlna v HUD, XP bar v HUD a obrazovku Statistiky. Přednačítá grafické assety (`getAssetLoader().preload()`).
-- `src/game/sim.ts`: stav běhu, souboje, místnosti a nabídky odměn. Obsahuje logiku `waveAwaitingStart` a metodu `startWave()`. XP se v `killEnemy` sbírají do běhu a HUD je označuje jako XP postavy.
+- `src/game/GameView.tsx`: obrazovky, životní cyklus běhu, lokální profilový gate, UI save-boundaries, desktop preference auto-fire a Motion přechody.
+- `src/game/input.ts`: sjednocené Actions pro klávesnici, myš, gamepad a mobilní NippleJS joystick.
+- `src/game/sim.ts`: stav běhu, souboje, místnosti, odměny, běhové XP/materiály, codex kill-hooky, wave handoff a snapshoty HUD/statistik.
 - `src/game/difficulty.ts`: sektory (10 úrovní), globální úroveň, křivka HP/damage/speed/vln a catch-up bonus. Parametry křivky editovatelné (localStorage `vaultbreak.difficulty.v1`).
-- `src/game/expedition.ts`: portály sektorů, šrot, obchod (ceny podle sektoru).
+- `src/game/progression.ts`: jediné mapování profilového `bestLevel` na feature unlocky.
+- `src/game/expedition.ts`: portály sektorů, anomálie, šrot, obchod a nabídky báze.
 - `src/game/loot-sim.ts`: simulátor nabídek pro správce.
 - `src/game/dungeon.ts`: generování místností a vln podle globální úrovně; boss tier přidává vlny po sektorech.
 - `src/game/weapons.ts`: generování zbraní, rarity, affixy a unikátní zbraně.
 - `src/game/abilities.ts`: výchozí schopnosti/pasivky a jejich generátory.
 - `src/game/content-settings.ts`: výchozí katalogy a validace uložených definic.
-- `src/game/AdminPanel.tsx`: editor rarit, schopností, pasivek a zbraní.
+- `src/game/AdminPanel.tsx`: editor katalogů, simulátor dopadu, obtížnost a import/export; editor volí existující efekty, nedefinuje nové kódové chování.
 - `src/game/auth.ts`: správa profilu, přezdívky a 4místného PINu v `localStorage`.
 - `src/game/auth-screen.tsx`: obrazovka registrace a přihlášení.
-- `src/game/save.ts`: profilové rekordy, checkpointy a souhrnné statistiky (verze 6); nejvyšší globální úroveň řídí účetní odemykání.
-- `src/game/characters.ts`: verzovaný postup postavy, převod dosavadních XP ze starého save, XP křivka a talentové body.
-- `src/game/assets.ts`: asset loader (`AssetLoader`, `drawAsset`, `getAssetLoader`) s graceful fallback na procedurální kresbu.
-- `src/game/render.ts`: používá assety (hráč, nepřátelé, střely, pickupy) s automatickým fallbackem na procedurální kresbu.
+- `src/game/save.ts`: profilové rekordy, checkpointy, souhrnné statistiky a reset postupu (save verze 6).
+- `src/game/characters.ts`: verze 1 datového formátu postav, normalizace/migrace legacy XP, XP křivka, talenty, respec a materiálová zásilka.
+- `src/game/character-armory.ts` + `src/game/weapon-components.ts`: dropy, recepty, výběr craftovaného startu, ceny a aplikace trvalých komponent.
+- `src/game/codex.ts`: jednorázová sbírka/CodexBonus i oddělený žurnál znalostí nepřátel/prestiže.
+- `src/game/render.ts`: canvas vykreslování herního světa; DOM ikony jsou centralizované v `src/game/ui-icons.tsx`.
 
 ## Spuštění a ověření
 
@@ -128,4 +159,10 @@ Po instalaci závislostí spusť `npm run dev`; aplikace je na `http://localhost
 
 ## Známá omezení
 
-Nastavení správce nejsou sdílená mezi prohlížeči ani uživateli. V editoru nelze definovat libovolný nový kód efektu; lze vytvářet a ladit varianty dostupných efektů. Profil (přezdívka + PIN) je uložen jen v aktuálním prohlížeči/zařízení. Grafické assety jsou zatím inline SVG placeholdery — nahrazení generovanou grafikou vyžaduje nové soubory se stejnými názvy v `public/assets/`. Asset system fallbackuje na procedurální kresbu, takže hra zůstává plně hratelná i bez assetů.
+Nastavení správce, obtížnosti, profil a herní save jsou lokální pro prohlížeč;
+neexistuje cloudová synchronizace ani bezpečné serverové přihlášení. Formát
+dat postav umožňuje seznam identit, avšak tvorba/výběr více postav a tříd
+zatím chybí. Body prestiže se ukládají, ale jejich endgame využití ještě není
+implementováno. Správce může měnit existující katalogové parametry, ne
+definovat nový efekt v kódu. Podrobný backlog je v
+[`development-roadmap.md`](./development-roadmap.md).

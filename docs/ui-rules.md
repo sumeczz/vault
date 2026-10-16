@@ -1,8 +1,7 @@
-# UI pravidla VAULTBREAK (v1.0)
+# UI pravidla VAULTBREAK (v1.1)
 
 Závazný návrh rozložení: velikosti, prvky, stránky a herní plocha.
-Vychází z `docs/graphics-style.md` (knihovna komponent) a design specifikace.
-Kód se řídí dokumentem — výjimky schvaluje změna dokumentu.
+Kód se řídí tímto dokumentem — výjimky schvaluje jeho aktualizace.
 
 Pravidlo č. 1: **více ikon, méně textu.** Každá sekce má ikonu v nadpisu,
 každý řádek statistiky má ikonu vlevo. Text nese jen informaci, kterou ikona
@@ -119,7 +118,10 @@ Všechny hlavní obrazovky jsou **celostránkové scrollovatelné sloupce**
 ## 8. Herní plocha (canvas + HUD)
 
 - Canvas fullscreen pod UI; kamera sleduje hráče, zoom dle šířky.
-- HUD respektuje safe-area; levá zóna 48 % = pohyb, pravá 52 % = míření.
+- HUD respektuje safe-area; na mobilu je vlevo jeden virtuální joystick, směr
+  pohybu současně určuje míření a automatická střelba je vždy zapnutá. Pravý
+  joystick se nezobrazuje. Na PC míří myš/gamepad a automatickou střelbu lze
+  zapnout v nastavení expedice nebo v pauze.
 - Tlačítka schopnost/dash/zbraň vpravo dole (56 px), postava vedle nich.
 - HP bar nad postavou (canvas), XP bar + čísla v HUD, boss bar nahoře,
   buff-čipy s odpočty, odpočet vlny / tlačítko Start vlna centrované nahoře.
@@ -133,6 +135,17 @@ Všechny hlavní obrazovky jsou **celostránkové scrollovatelné sloupce**
   Po vstupu zůstává běh pozastavený; mimo toto okno je záložka uzamčená.
 - Panely mají vlastní scroll, zavírací akci a na mobilu zůstávají ovladatelné
   dotykem; nepřekrývají interaktivní canvas ovládání.
+- Přechody panelů/záložek, průběhové pruhy a přepínače používají Motion
+  s krátkou animací; respektují `prefers-reduced-motion` a bez animace zachovají
+  stejný stav i informace.
+- Mobilní joystick je jediný, statický a levostranný. NippleJS se inicializuje
+  až po připojení DOM z React efektu a při odchodu z obrazovky se zničí;
+  knihovna se nesmí importovat synchronně při serverovém renderování, protože
+  inicializuje přístup k `window`.
+- Mobilní auto-fire se nesmí dát vypnout; desktopové auto-fire je preference
+  s přístupným `role="switch"` v nastavení expedice a pauze.
+- Animace jsou prezentační: nesmí odkládat kliknutí, měnit výsledek akce ani
+  skrývat aktuální číselný stav progressu.
 
 ## 9. Ikony
 
