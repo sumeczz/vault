@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="cs">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#0b0d13">
+  <meta name="description" content="Abyssbound — původní akční roguelike RPG prototyp.">
+  <title>Abyssbound — Dungeon Prototype</title>
+</head>
+<body>
+  <main id="game-shell">
+    <canvas id="game" aria-label="Herní plocha"></canvas>
+    <header class="hud">
+      <div class="brand"><span class="brand-mark">A</span><div><strong>ABYSSBOUND</strong><small>PROTOTYPE 0.1.0</small></div></div>
+      <div class="vitals">
+        <div class="stat-row"><span>HP</span><div class="bar"><i id="hp-fill" class="hp-fill"></i></div><b id="hp-text">100 / 100</b></div>
+        <div class="stat-row"><span>XP</span><div class="bar"><i id="xp-fill" class="xp-fill"></i></div><b id="level-text">LVL 1</b></div>
+      </div>
+      <div class="counter"><small>PORAZENÍ</small><strong id="kill-count">0</strong></div>
+    </header>
+    <section class="objective"><span class="pulse"></span><div><strong>První sestup</strong><small>Prozkoumej ruiny a přežij.</small></div></section>
+    <div class="help"><span><kbd>W A S D</kbd> Pohyb</span><span><kbd>J</kbd> Útok</span><span><kbd>SPACE</kbd> Úskok</span><span><kbd>E</kbd> Výboj</span></div>
+    <section class="mobile-controls" aria-label="Dotykové ovládání">
+      <div class="dpad">
+        <button data-key="w" class="up" aria-label="Nahoru">▲</button><button data-key="a" class="left" aria-label="Doleva">◀</button>
+        <button data-key="s" class="down" aria-label="Dolů">▼</button><button data-key="d" class="right" aria-label="Doprava">▶</button>
+      </div>
+      <div class="actions"><button id="touch-dodge" aria-label="Úskok">↗</button><button id="touch-attack" class="attack" aria-label="Útok">⚔</button><button id="touch-pulse" aria-label="Výboj">✦</button></div>
+    </section>
+    <div id="toast" role="status" aria-live="polite"></div>
+    <div class="footer-note">PROTOTYP • POSTUP SE ZATÍM NEUKLÁDÁ</div>
+  </main>
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>
