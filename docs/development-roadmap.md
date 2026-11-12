@@ -97,10 +97,11 @@ samostatné rozhodnutí, ne součást této etapy.
 - Ověřit souběžný dotyk levého a pravého joysticku, držení střelby při pohybu,
   přerušení dotyku, ztrátu pointer capture, změnu orientace a návrat z pozadí.
 
-- ověřit joystick na iOS Safari a Android Chrome: uchopení, vytažení mimo
-  zónu, zrušení dotyku, změna orientace, vícedotyková tlačítka a opuštění hry;
-- ověřit, že auto-fire běží na mobilu vždy, míří podle vektoru pohybu a při
-  zastavení drží poslední záměr; znovu ověřit ruční míření na desktopu;
+- ověřit joystick pohybu i míření na iOS Safari a Android Chrome:
+  uchopení, vytažení mimo zónu, zrušení dotyku, změna orientace a souběžný
+  vícedotyk;
+- ověřit, že Smart Assist nikdy nestřílí bez stisku tlačítka a Manual Twin
+  Stick nikdy nespustí střelbu samotným pohybem pravého joysticku;
 - provést průchod klávesnicí, screen reader popisky, focus, reduced-motion,
   kontrast a 390px layout všech nových stránek/dialogů;
 - opravit pouze potvrzené rozdíly a přidat automatizované regresní testy tam,
