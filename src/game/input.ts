@@ -233,7 +233,8 @@ export function sampleInput(): Actions {
     if (pad.buttons[2]?.pressed) {
       /* ability analog */
     }
-    if (useStickAim && Math.hypot(aimStickX, aimStickY) > 0.35) fire = true;
+    const padAim = radial(pad.axes[2] ?? 0, pad.axes[3] ?? 0, 0.22);
+    if (Math.hypot(padAim.x, padAim.y) > 0.35) fire = true;
   }
 
   const justDash = dashHeld && !prevDash;
