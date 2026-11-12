@@ -4586,7 +4586,7 @@ function TouchAimJoystick({ settings }: { settings: TouchUiSettings }) {
   return (
     <div
       ref={zoneRef}
-      className={`pointer-events-auto absolute bottom-[120px] top-[38%] w-[52%] ${settings.handedness === "right" ? "right-0" : "left-0"}`}
+      className={`pointer-events-auto absolute bottom-[120px] top-[38%] w-1/2 ${settings.handedness === "right" ? "right-0" : "left-0"}`}
       style={{ touchAction: "none", bottom: "calc(120px + env(safe-area-inset-bottom))" }}
       aria-label="Joystick míření"
     />
