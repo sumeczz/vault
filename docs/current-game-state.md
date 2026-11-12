@@ -25,7 +25,7 @@ cloudovou obnovu; smazání úložiště profil odstraní.
 - Míření a střelba: myš; na gamepadu pravá páčka a spoušť.
 - Dash: mezerník. Schopnost: F nebo Shift. Přepínání zbraní: Q/E. Statistiky: T.
 - Mobilní ovládání má dva dostupné režimy. **Smart Assist** používá levý
-  joystick pohybu, automatické zaměření nejbližšího živého nepřítele a tlačítko
+  joystick pohybu, automatické zaměření živého nepřítele (s prioritou bossů a elit) a tlačítko
   pro střelbu. **Manual Twin Stick** přidává pravý joystick pro ruční míření
   a samostatné tlačítko střelby. Režim se ukládá lokálně. VIP Combat Assist
   (automatické míření i střelba) je zatím pouze označený jako zamčený návrh;
