@@ -2256,8 +2256,23 @@ export class Run {
     let mx = input.moveX;
     let my = input.moveY;
     let aim = this.player.aim;
-    if (input.autoFire && Math.hypot(mx, my) > 0.12) aim = Math.atan2(my, mx);
-    else if (input.useStickAim) aim = Math.atan2(input.aimStickY, input.aimStickX);
+    if (input.autoAim) {
+      let target: Enemy | null = null;
+      let targetDistance = Number.POSITIVE_INFINITY;
+      for (const enemy of this.enemies) {
+        if (!enemy.active || enemy.hp <= 0) continue;
+        const dx = enemy.x - this.player.x;
+        const dy = enemy.y - this.player.y;
+        const distance = dx * dx + dy * dy;
+        if (distance < targetDistance) {
+          target = enemy;
+          targetDistance = distance;
+        }
+      }
+      if (target) aim = Math.atan2(target.y - this.player.y, target.x - this.player.x);
+      else if (input.useStickAim) aim = Math.atan2(input.aimStickY, input.aimStickX);
+    } else if (input.useStickAim) aim = Math.atan2(input.aimStickY, input.aimStickX);
+    else if (input.autoFire && Math.hypot(mx, my) > 0.12) aim = Math.atan2(my, mx);
     else if (input.mouseInside) {
       const world = this.screenToWorld(input.mouseScreenX, input.mouseScreenY);
       aim = Math.atan2(world.y - this.player.y, world.x - this.player.x);
