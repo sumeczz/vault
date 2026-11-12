@@ -99,6 +99,7 @@ import {
   saveArmory,
 } from "./mods.ts";
 import { TUTORIAL_TEXTS, completeTutorial, isTutorialDone, tutorialStepFor } from "./tutorial.ts";
+import { DEFAULT_TOUCH_UI_SETTINGS, parseTouchUiSettings } from "./touch-controls.ts";
 import type { Actions } from "./input.ts";
 import { sampleInput, setAutoFireSetting, setTouchControlsEnabled, setTouchMove, setTouchAim, setTouchFireHeld, setTouchCombatMode } from "./input.ts";
 
@@ -190,6 +191,26 @@ describe("mobilní režimy střelby", () => {
     assert.equal(desktop.autoFire, true);
     setAutoFireSetting(false);
     setTouchCombatMode("assist");
+  });
+});
+
+describe("nastavení mobilního ovládání", () => {
+  it("načte validní hodnoty a zachová výchozí hodnoty pro neznámé položky", () => {
+    assert.deepEqual(parseTouchUiSettings(JSON.stringify({
+      size: "large",
+      opacity: "low",
+      handedness: "left",
+      extra: true,
+    })), { size: "large", opacity: "low", handedness: "left" });
+    assert.deepEqual(parseTouchUiSettings(JSON.stringify({ size: "huge", opacity: "opaque" })), {
+      ...DEFAULT_TOUCH_UI_SETTINGS,
+    });
+  });
+
+  it("bezpečně obnoví výchozí nastavení z poškozeného nebo prázdného úložiště", () => {
+    assert.deepEqual(parseTouchUiSettings(null), { ...DEFAULT_TOUCH_UI_SETTINGS });
+    assert.deepEqual(parseTouchUiSettings("{broken"), { ...DEFAULT_TOUCH_UI_SETTINGS });
+    assert.deepEqual(parseTouchUiSettings("[]"), { ...DEFAULT_TOUCH_UI_SETTINGS });
   });
 });
 
