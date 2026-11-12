@@ -100,7 +100,7 @@ import {
 } from "./mods.ts";
 import { TUTORIAL_TEXTS, completeTutorial, isTutorialDone, tutorialStepFor } from "./tutorial.ts";
 import type { Actions } from "./input.ts";
-import { sampleInput, setAutoFireSetting, setTouchControlsEnabled, setTouchMove } from "./input.ts";
+import { sampleInput, setAutoFireSetting, setTouchControlsEnabled, setTouchMove, setTouchAim, setTouchFireHeld, setTouchCombatMode } from "./input.ts";
 
 const NEUTRAL_ACTIONS: Actions = {
   moveX: 0,
@@ -108,6 +108,7 @@ const NEUTRAL_ACTIONS: Actions = {
   aimStickX: 0,
   aimStickY: 0,
   useStickAim: false,
+  autoAim: false,
   autoFire: false,
   mouseScreenX: 400,
   mouseScreenY: 300,
@@ -121,26 +122,61 @@ const NEUTRAL_ACTIONS: Actions = {
   justCharacter: false,
 };
 
-describe("ovládání střelby", () => {
-  it("zapíná auto-fire pro mobil a podle přepínače na desktopu", () => {
-    setTouchMove(0, 0, false);
+describe("mobilní režimy střelby", () => {
+  it("Smart Assist automaticky míří, ale střílí pouze při držení tlačítka", () => {
     setAutoFireSetting(false);
-    setTouchControlsEnabled(false);
-    assert.equal(sampleInput().fire, false);
-    assert.equal(sampleInput().autoFire, false);
-
     setTouchControlsEnabled(true);
+    setTouchCombatMode("assist");
+    setTouchFireHeld(false);
+    setTouchAim(0, 0, false);
+    const idle = sampleInput();
+    assert.equal(idle.autoAim, true);
+    assert.equal(idle.autoFire, false);
+    assert.equal(idle.fire, false);
+
+    setTouchFireHeld(true);
+    const firing = sampleInput();
+    assert.equal(firing.autoAim, true);
+    assert.equal(firing.fire, true);
+    setTouchFireHeld(false);
+    setTouchControlsEnabled(false);
+  });
+
+  it("Manual Twin Stick předává směr pravého joysticku a vyžaduje střelbu", () => {
+    setTouchControlsEnabled(true);
+    setTouchCombatMode("manual");
+    setTouchAim(0.8, -0.2, true);
+    setTouchFireHeld(false);
+    const aiming = sampleInput();
+    assert.equal(aiming.autoAim, false);
+    assert.equal(aiming.useStickAim, true);
+    assert.equal(aiming.aimStickX, 0.8);
+    assert.equal(aiming.aimStickY, -0.2);
+    assert.equal(aiming.fire, false);
+
+    setTouchFireHeld(true);
     assert.equal(sampleInput().fire, true);
-    assert.equal(sampleInput().autoFire, true);
+    setTouchFireHeld(false);
+    setTouchAim(0, 0, false);
+    setTouchControlsEnabled(false);
+  });
+
+  it("VIP režim automaticky míří i střílí; desktop auto-fire zůstává oddělený", () => {
+    setAutoFireSetting(false);
+    setTouchControlsEnabled(true);
+    setTouchCombatMode("vip");
+    const vip = sampleInput();
+    assert.equal(vip.autoAim, true);
+    assert.equal(vip.autoFire, true);
+    assert.equal(vip.fire, true);
 
     setTouchControlsEnabled(false);
     setAutoFireSetting(true);
-    assert.equal(sampleInput().fire, true);
-    assert.equal(sampleInput().autoFire, true);
-
+    const desktop = sampleInput();
+    assert.equal(desktop.autoAim, false);
+    assert.equal(desktop.autoFire, true);
     setAutoFireSetting(false);
-    assert.equal(sampleInput().fire, false);
-    assert.equal(sampleInput().autoFire, false);
+    setTouchCombatMode("assist");
   });
 });
 
