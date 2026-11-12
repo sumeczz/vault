@@ -64,6 +64,7 @@ import {
   tapSwap,
 } from "./input";
 import { renderRun } from "./render";
+import { DEFAULT_TOUCH_UI_SETTINGS, parseTouchUiSettings, type TouchUiSettings } from "./touch-controls";
 import { randomSeedString } from "./rng";
 import { AdminPanel } from "./AdminPanel";
 import {
@@ -269,6 +270,14 @@ export function GameView() {
   const [content, setContent] = useState<GameContentCatalogs>(() => defaultGameContent());
   const [mutedState, setMutedState] = useState(false);
   const [touch, setTouch] = useState(false);
+  const [touchUiSettings, setTouchUiSettings] = useState<TouchUiSettings>(() => {
+    if (typeof window === "undefined") return { ...DEFAULT_TOUCH_UI_SETTINGS };
+    try {
+      return parseTouchUiSettings(localStorage.getItem("vaultbreak.controls.touch-ui"));
+    } catch {
+      return { ...DEFAULT_TOUCH_UI_SETTINGS };
+    }
+  });
   const [touchMode, setTouchMode] = useState<"assist" | "manual">(() => {
     if (typeof window === "undefined") return "assist";
     try {
@@ -322,6 +331,14 @@ export function GameView() {
       /* Keep the in-memory preference for this session if storage is unavailable. */
     }
   }, [autoFire]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem("vaultbreak.controls.touch-ui", JSON.stringify(touchUiSettings));
+    } catch {
+      /* Keep touch preferences in memory if storage is unavailable. */
+    }
+  }, [touchUiSettings]);
 
   useEffect(() => {
     setTouchControlsEnabled(touch);
@@ -747,6 +764,8 @@ export function GameView() {
           <TouchLayer
             mode={touchMode}
             onMode={setTouchMode}
+            settings={touchUiSettings}
+            onSettings={setTouchUiSettings}
             onCharacter={() => setPanelAndSave(panel === "char" ? null : "char")}
           />
         )}
@@ -4310,18 +4329,34 @@ type TouchMode = "assist" | "manual";
 function TouchLayer({
   mode,
   onMode,
+  settings,
+  onSettings,
   onCharacter,
 }: {
   mode: TouchMode;
   onMode: (mode: TouchMode) => void;
+  settings: TouchUiSettings;
+  onSettings: (settings: TouchUiSettings) => void;
   onCharacter: () => void;
 }) {
-  const holdFire = (held: boolean) => setTouchFireHeld(held);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const dimensions = {
+    compact: { move: 112, aim: 104, fire: 68, utility: 44, moveInset: 82, moveBottom: 86, aimInset: 136, aimBottom: 52, fireBottom: 78 },
+    normal: { move: 126, aim: 116, fire: 76, utility: 48, moveInset: 92, moveBottom: 96, aimInset: 150, aimBottom: 60, fireBottom: 86 },
+    large: { move: 140, aim: 128, fire: 88, utility: 56, moveInset: 102, moveBottom: 106, aimInset: 166, aimBottom: 68, fireBottom: 94 },
+  }[settings.size];
+  const opacity = { low: 0.58, medium: 0.78, high: 1 }[settings.opacity];
+  const fireSide = settings.handedness === "right" ? "right" : "left";
+  const utilitySide = fireSide;
+  const update = (patch: Partial<TouchUiSettings>) => onSettings({ ...settings, ...patch });
+  const fireStyle = mode === "assist"
+    ? "border-2 border-accent-blue bg-accent-blue/25"
+    : "border-2 border-rarity-uncommon bg-rarity-uncommon/20";
   return (
     <div className="pointer-events-none absolute inset-0 select-none">
-      <TouchJoystick />
-      {mode === "manual" ? <TouchAimJoystick /> : null}
-      <div className="pointer-events-auto absolute right-3 top-20 flex rounded-xl border border-border bg-surface/90 p-1 shadow-lg" style={{ touchAction: "none" }} aria-label="Režim střelby">
+      <TouchJoystick settings={settings} />
+      {mode === "manual" ? <TouchAimJoystick settings={settings} /> : null}
+      <div className={`pointer-events-auto absolute ${fireSide}-3 top-20 flex rounded-xl border border-border bg-surface/90 p-1 shadow-lg`} style={{ touchAction: "none", opacity }} aria-label="Režim střelby">
         <button
           type="button"
           onClick={() => onMode("assist")}
@@ -4346,47 +4381,80 @@ function TouchLayer({
           <Lock className="size-3" /> VIP
         </span>
       </div>
-      {mode === "assist" ? (
-        <button
-          type="button"
-          onPointerDown={(e) => {
-            e.preventDefault();
-            e.currentTarget.setPointerCapture(e.pointerId);
-            holdFire(true);
-          }}
-          onPointerUp={() => holdFire(false)}
-          onPointerCancel={() => holdFire(false)}
-          onLostPointerCapture={() => holdFire(false)}
-          className="pointer-events-auto absolute bottom-[86px] right-4 flex size-[76px] items-center justify-center rounded-full border-2 border-accent-blue bg-accent-blue/25 text-sm font-bold text-fg shadow-lg active:scale-95"
-          style={{ touchAction: "none", bottom: "calc(86px + env(safe-area-inset-bottom))" }}
-          aria-label="Držet pro střelbu"
-        >
-          <Crosshair className="size-7" />
-        </button>
-      ) : (
-        <button
-          type="button"
-          onPointerDown={(e) => {
-            e.preventDefault();
-            e.currentTarget.setPointerCapture(e.pointerId);
-            holdFire(true);
-          }}
-          onPointerUp={() => holdFire(false)}
-          onPointerCancel={() => holdFire(false)}
-          onLostPointerCapture={() => holdFire(false)}
-          className="pointer-events-auto absolute bottom-[86px] right-4 flex size-[76px] items-center justify-center rounded-full border-2 border-rarity-uncommon bg-rarity-uncommon/20 text-sm font-bold text-fg shadow-lg active:scale-95"
-          style={{ touchAction: "none", bottom: "calc(86px + env(safe-area-inset-bottom))" }}
-          aria-label="Držet pro střelbu"
-        >
-          <Crosshair className="size-7" />
-        </button>
-      )}
-      <div className="pointer-events-auto absolute right-3 flex items-center gap-2" style={{ touchAction: "none", bottom: "max(12px, env(safe-area-inset-bottom))" }}>
+      <button
+        type="button"
+        onClick={() => setSettingsOpen((open) => !open)}
+        className={`pointer-events-auto absolute ${fireSide}-3 top-[132px] flex size-10 items-center justify-center rounded-xl border border-border bg-surface/90 text-fg shadow-lg`}
+        style={{ touchAction: "none", opacity }}
+        aria-label="Nastavení dotykového ovládání"
+        aria-expanded={settingsOpen}
+      >
+        <SlidersHorizontal className="size-4" />
+      </button>
+      {settingsOpen ? (
+        <div className={`pointer-events-auto absolute ${fireSide}-3 top-[178px] z-30 w-[min(248px,calc(100vw-24px))] rounded-xl border border-border bg-surface/95 p-3 shadow-xl backdrop-blur`} style={{ touchAction: "pan-y" }}>
+          <div className="mb-3 text-xs font-semibold text-fg">Dotykové ovládání</div>
+          <div className="mb-3">
+            <div className="mb-1.5 text-[11px] text-muted">Velikost tlačítek</div>
+            <div className="grid grid-cols-3 gap-1">
+              {(["compact", "normal", "large"] as const).map((size) => (
+                <button key={size} type="button" onClick={() => update({ size })} aria-pressed={settings.size === size} className={`min-h-9 rounded-lg border px-1 text-[11px] ${settings.size === size ? "border-accent-blue bg-accent-blue/15 text-fg" : "border-border text-muted"}`}>
+                  {size === "compact" ? "Malá" : size === "normal" ? "Střední" : "Velká"}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div className="mb-3">
+            <div className="mb-1.5 text-[11px] text-muted">Průhlednost</div>
+            <div className="grid grid-cols-3 gap-1">
+              {(["low", "medium", "high"] as const).map((level) => (
+                <button key={level} type="button" onClick={() => update({ opacity: level })} aria-pressed={settings.opacity === level} className={`min-h-9 rounded-lg border px-1 text-[11px] ${settings.opacity === level ? "border-accent-blue bg-accent-blue/15 text-fg" : "border-border text-muted"}`}>
+                  {level === "low" ? "Nízká" : level === "medium" ? "Střední" : "Vysoká"}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div>
+            <div className="mb-1.5 text-[11px] text-muted">Rozložení rukou</div>
+            <div className="grid grid-cols-2 gap-1">
+              {(["left", "right"] as const).map((hand) => (
+                <button key={hand} type="button" onClick={() => update({ handedness: hand })} aria-pressed={settings.handedness === hand} className={`min-h-9 rounded-lg border px-1 text-[11px] ${settings.handedness === hand ? "border-accent-blue bg-accent-blue/15 text-fg" : "border-border text-muted"}`}>
+                  {hand === "left" ? "Levá ruka" : "Pravá ruka"}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      ) : null}
+      <button
+        type="button"
+        onPointerDown={(e) => {
+          e.preventDefault();
+          e.currentTarget.setPointerCapture(e.pointerId);
+          setTouchFireHeld(true);
+        }}
+        onPointerUp={() => setTouchFireHeld(false)}
+        onPointerCancel={() => setTouchFireHeld(false)}
+        onLostPointerCapture={() => setTouchFireHeld(false)}
+        className={`pointer-events-auto absolute bottom-[86px] ${fireSide}-4 flex items-center justify-center rounded-full ${fireStyle} text-sm font-bold text-fg shadow-lg active:scale-95`}
+        style={{
+          touchAction: "none",
+          bottom: `calc(${dimensions.fireBottom}px + env(safe-area-inset-bottom))`,
+          width: dimensions.fire,
+          height: dimensions.fire,
+          opacity,
+        }}
+        aria-label="Držet pro střelbu"
+      >
+        <Crosshair className="size-7" />
+      </button>
+      <div className={`pointer-events-auto absolute ${utilitySide}-3 flex items-center gap-2`} style={{ touchAction: "none", bottom: "max(12px, env(safe-area-inset-bottom))", opacity }}>
         <button
           type="button"
           onClick={onCharacter}
           onContextMenu={(e) => e.preventDefault()}
-          className="flex size-12 items-center justify-center rounded-full border border-border bg-surface/90 text-fg shadow-lg"
+          className="flex items-center justify-center rounded-full border border-border bg-surface/90 text-fg shadow-lg"
+          style={{ width: dimensions.utility, height: dimensions.utility }}
           aria-label="Postava"
         >
           <User className="size-5" />
@@ -4395,7 +4463,8 @@ function TouchLayer({
           type="button"
           onPointerDown={(e) => { e.preventDefault(); tapAbility(); }}
           onContextMenu={(e) => e.preventDefault()}
-          className="flex size-12 items-center justify-center rounded-full border border-border bg-surface/90 text-fg shadow-lg"
+          className="flex items-center justify-center rounded-full border border-border bg-surface/90 text-fg shadow-lg"
+          style={{ width: dimensions.utility, height: dimensions.utility }}
           aria-label="Schopnost"
         >
           <Zap className="size-5" />
@@ -4404,7 +4473,8 @@ function TouchLayer({
           type="button"
           onPointerDown={(e) => { e.preventDefault(); tapDash(); }}
           onContextMenu={(e) => e.preventDefault()}
-          className="flex size-12 items-center justify-center rounded-full border border-border bg-surface/90 text-xs font-bold text-fg shadow-lg"
+          className="flex items-center justify-center rounded-full border border-border bg-surface/90 text-xs font-bold text-fg shadow-lg"
+          style={{ width: dimensions.utility, height: dimensions.utility }}
           aria-label="Dash"
         >
           DASH
@@ -4413,7 +4483,8 @@ function TouchLayer({
           type="button"
           onPointerDown={(e) => { e.preventDefault(); tapSwap(); }}
           onContextMenu={(e) => e.preventDefault()}
-          className="flex size-12 items-center justify-center rounded-full border border-border bg-surface/90 text-fg shadow-lg"
+          className="flex items-center justify-center rounded-full border border-border bg-surface/90 text-fg shadow-lg"
+          style={{ width: dimensions.utility, height: dimensions.utility }}
           aria-label="Výměna zbraně"
         >
           <Repeat className="size-4" />
@@ -4423,25 +4494,33 @@ function TouchLayer({
   );
 }
 
-function TouchJoystick() {
+function TouchJoystick({ settings }: { settings: TouchUiSettings }) {
   const zoneRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     const zone = zoneRef.current;
     if (!zone) return;
     let cancelled = false;
     let destroyJoystick: (() => void) | null = null;
+    const dimensions = {
+      compact: { size: 112, inset: 82, bottom: 86 },
+      normal: { size: 126, inset: 92, bottom: 96 },
+      large: { size: 140, inset: 102, bottom: 106 },
+    }[settings.size];
+    const restOpacity = { low: 0.38, medium: 0.58, high: 0.78 }[settings.opacity];
+    const position = settings.handedness === "right"
+      ? { left: `${dimensions.inset}px`, bottom: `${dimensions.bottom}px` }
+      : { right: `${dimensions.inset}px`, bottom: `${dimensions.bottom}px` };
     void import("nipplejs").then(({ default: nipplejs }) => {
       if (cancelled) return;
       const joystick = nipplejs.create({
         zone,
         mode: "static",
-        position: { left: "92px", bottom: "96px" },
-        size: 126,
+        position,
+        size: dimensions.size,
         threshold: 0.08,
         color: { front: "rgba(180, 205, 222, 0.95)", back: "rgba(32, 48, 62, 0.48)" },
-        restOpacity: 0.58,
+        restOpacity,
         restJoystick: true,
-        multitouch: true,
         maxNumberOfJoysticks: 1,
       });
       joystick.on("move", (event) => setTouchMove(event.data.vector.x, event.data.vector.y, true));
@@ -4453,36 +4532,44 @@ function TouchJoystick() {
       destroyJoystick?.();
       setTouchMove(0, 0, false);
     };
-  }, []);
+  }, [settings.handedness, settings.opacity, settings.size]);
   return (
     <div
       ref={zoneRef}
-      className="pointer-events-auto absolute bottom-0 left-0 top-[42%] w-[50%]"
-      style={{ touchAction: "none" }}
+      className={`pointer-events-auto absolute bottom-0 top-[42%] w-1/2 ${settings.handedness === "right" ? "left-0" : "right-0"}`}
+      style={{ touchAction: "none", bottom: "env(safe-area-inset-bottom)" }}
       aria-label="Joystick pohybu"
     />
   );
 }
 
-function TouchAimJoystick() {
+function TouchAimJoystick({ settings }: { settings: TouchUiSettings }) {
   const zoneRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     const zone = zoneRef.current;
     if (!zone) return;
     let cancelled = false;
     let destroyJoystick: (() => void) | null = null;
+    const dimensions = {
+      compact: { size: 104, inset: 136, bottom: 52 },
+      normal: { size: 116, inset: 150, bottom: 60 },
+      large: { size: 128, inset: 166, bottom: 68 },
+    }[settings.size];
+    const restOpacity = { low: 0.34, medium: 0.5, high: 0.72 }[settings.opacity];
+    const position = settings.handedness === "right"
+      ? { right: `${dimensions.inset}px`, bottom: `${dimensions.bottom}px` }
+      : { left: `${dimensions.inset}px`, bottom: `${dimensions.bottom}px` };
     void import("nipplejs").then(({ default: nipplejs }) => {
       if (cancelled) return;
       const joystick = nipplejs.create({
         zone,
         mode: "static",
-        position: { right: "150px", bottom: "60px" },
-        size: 116,
+        position,
+        size: dimensions.size,
         threshold: 0.08,
         color: { front: "rgba(122, 190, 255, 0.95)", back: "rgba(32, 48, 62, 0.42)" },
-        restOpacity: 0.5,
+        restOpacity,
         restJoystick: true,
-        multitouch: true,
         maxNumberOfJoysticks: 1,
       });
       joystick.on("move", (event) => setTouchAim(event.data.vector.x, event.data.vector.y, true));
@@ -4494,12 +4581,12 @@ function TouchAimJoystick() {
       destroyJoystick?.();
       setTouchAim(0, 0, false);
     };
-  }, []);
+  }, [settings.handedness, settings.opacity, settings.size]);
   return (
     <div
       ref={zoneRef}
-      className="pointer-events-auto absolute bottom-[120px] right-0 top-[38%] w-[52%]"
-      style={{ touchAction: "none" }}
+      className={`pointer-events-auto absolute bottom-[120px] top-[38%] w-[52%] ${settings.handedness === "right" ? "right-0" : "left-0"}`}
+      style={{ touchAction: "none", bottom: "calc(120px + env(safe-area-inset-bottom))" }}
       aria-label="Joystick míření"
     />
   );
