@@ -4,6 +4,7 @@ export type Actions = {
   aimStickX: number;
   aimStickY: number;
   useStickAim: boolean;
+  autoAim: boolean;
   autoFire: boolean;
   mouseScreenX: number;
   mouseScreenY: number;
@@ -27,6 +28,10 @@ let prevStats = false;
 let prevCharacter = false;
 
 let touchMove = { x: 0, y: 0, active: false };
+let touchAim = { x: 0, y: 0, active: false };
+let touchFireHeld = false;
+let touchAutoAim = false;
+let touchAutoFire = false;
 const mouse = { x: 0, y: 0, down: false, inside: false };
 let autoFireEnabled = false;
 let touchControlsEnabled = false;
@@ -129,6 +134,21 @@ export function setTouchMove(x: number, y: number, active: boolean): void {
   touchMove = { x, y, active };
 }
 
+export function setTouchAim(x: number, y: number, active: boolean): void {
+  touchAim = { x, y, active };
+}
+
+export function setTouchFireHeld(held: boolean): void {
+  touchFireHeld = held;
+}
+
+export function setTouchCombatMode(mode: "assist" | "manual" | "vip"): void {
+  touchAutoAim = mode !== "manual";
+  touchAutoFire = mode === "vip";
+  if (mode !== "manual") touchAim = { x: 0, y: 0, active: false };
+  if (mode !== "assist") touchFireHeld = false;
+}
+
 export function setAutoFireSetting(enabled: boolean): void {
   autoFireEnabled = enabled;
 }
@@ -184,9 +204,9 @@ export function sampleInput(): Actions {
     moveY /= len;
   }
 
-  let aimStickX = 0;
-  let aimStickY = 0;
-  let useStickAim = false;
+  let aimStickX = touchAim.active ? touchAim.x : 0;
+  let aimStickY = touchAim.active ? touchAim.y : 0;
+  let useStickAim = touchAim.active;
   for (const pad of pads) {
     if (!pad) continue;
     const rs = radial(pad.axes[2] ?? 0, pad.axes[3] ?? 0, 0.22);
@@ -204,8 +224,9 @@ export function sampleInput(): Actions {
   const statsHeld = k.has("KeyT");
   const characterHeld = k.has("KeyC");
 
-  const autoFire = autoFireEnabled || touchControlsEnabled;
-  let fire = mouse.down || autoFire;
+  const autoFire = touchControlsEnabled ? touchAutoFire : autoFireEnabled;
+  const autoAim = touchControlsEnabled && touchAutoAim;
+  let fire = mouse.down || autoFire || (touchControlsEnabled && touchFireHeld);
   for (const pad of pads) {
     if (!pad) continue;
     if (pad.buttons[7]?.pressed || pad.buttons[0]?.pressed) fire = true;
@@ -237,6 +258,7 @@ export function sampleInput(): Actions {
     aimStickX,
     aimStickY,
     useStickAim,
+    autoAim,
     autoFire,
     mouseScreenX: mouse.x,
     mouseScreenY: mouse.y,
