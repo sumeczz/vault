@@ -56,6 +56,9 @@ import {
   setAutoFireSetting,
   setTouchControlsEnabled,
   setTouchMove,
+  setTouchAim,
+  setTouchFireHeld,
+  setTouchCombatMode,
   tapAbility,
   tapDash,
   tapSwap,
@@ -266,6 +269,14 @@ export function GameView() {
   const [content, setContent] = useState<GameContentCatalogs>(() => defaultGameContent());
   const [mutedState, setMutedState] = useState(false);
   const [touch, setTouch] = useState(false);
+  const [touchMode, setTouchMode] = useState<"assist" | "manual">(() => {
+    if (typeof window === "undefined") return "assist";
+    try {
+      return localStorage.getItem("vaultbreak.controls.touch-mode") === "manual" ? "manual" : "assist";
+    } catch {
+      return "assist";
+    }
+  });
   const [autoFire, setAutoFire] = useState(() => {
     if (typeof window === "undefined") return false;
     try {
@@ -314,11 +325,19 @@ export function GameView() {
 
   useEffect(() => {
     setTouchControlsEnabled(touch);
+    setTouchCombatMode(touchMode);
+    try {
+      localStorage.setItem("vaultbreak.controls.touch-mode", touchMode);
+    } catch {
+      /* Keep the in-memory preference if storage is unavailable. */
+    }
     return () => {
       setTouchControlsEnabled(false);
       setTouchMove(0, 0, false);
+      setTouchAim(0, 0, false);
+      setTouchFireHeld(false);
     };
-  }, [touch]);
+  }, [touch, touchMode]);
 
   // Tutorial: sleduj viděné obrazovky; příchod do báze návod uzavře.
   useEffect(() => {
@@ -724,7 +743,13 @@ export function GameView() {
             }}
           />
         )}
-        {touch && screen === "playing" && <TouchLayer onCharacter={() => setPanelAndSave(panel === "char" ? null : "char")} />}
+        {touch && screen === "playing" && (
+          <TouchLayer
+            mode={touchMode}
+            onMode={setTouchMode}
+            onCharacter={() => setPanelAndSave(panel === "char" ? null : "char")}
+          />
+        )}
         <AnimatePresence mode="wait" initial={false}>
           {(screen === "playing" || screen === "paused") && panel && hud && stats && (
             <motion.div
@@ -4280,42 +4305,108 @@ function EndOverlay({
   );
 }
 
-function TouchLayer({ onCharacter }: { onCharacter: () => void }) {
+type TouchMode = "assist" | "manual";
+
+function TouchLayer({
+  mode,
+  onMode,
+  onCharacter,
+}: {
+  mode: TouchMode;
+  onMode: (mode: TouchMode) => void;
+  onCharacter: () => void;
+}) {
+  const holdFire = (held: boolean) => setTouchFireHeld(held);
   return (
-    <div className="pointer-events-none absolute inset-0">
+    <div className="pointer-events-none absolute inset-0 select-none">
       <TouchJoystick />
-      <div className="pointer-events-auto absolute right-4 bottom-36 flex flex-col gap-2" style={{ touchAction: "none" }}>
+      {mode === "manual" ? <TouchAimJoystick /> : null}
+      <div className="pointer-events-auto absolute right-3 top-20 flex rounded-xl border border-border bg-surface/90 p-1 shadow-lg" style={{ touchAction: "none" }} aria-label="Režim střelby">
+        <button
+          type="button"
+          onClick={() => onMode("assist")}
+          aria-pressed={mode === "assist"}
+          className={`min-h-10 rounded-lg px-2.5 text-[11px] font-semibold ${mode === "assist" ? "bg-accent-blue text-white" : "text-muted"}`}
+        >
+          AUTO AIM
+        </button>
+        <button
+          type="button"
+          onClick={() => onMode("manual")}
+          aria-pressed={mode === "manual"}
+          className={`min-h-10 rounded-lg px-2.5 text-[11px] font-semibold ${mode === "manual" ? "bg-accent-blue text-white" : "text-muted"}`}
+        >
+          MANUAL
+        </button>
+      </div>
+      {mode === "assist" ? (
+        <button
+          type="button"
+          onPointerDown={(e) => {
+            e.preventDefault();
+            e.currentTarget.setPointerCapture(e.pointerId);
+            holdFire(true);
+          }}
+          onPointerUp={() => holdFire(false)}
+          onPointerCancel={() => holdFire(false)}
+          onLostPointerCapture={() => holdFire(false)}
+          className="pointer-events-auto absolute bottom-28 right-5 flex size-[76px] items-center justify-center rounded-full border-2 border-accent-blue bg-accent-blue/25 text-sm font-bold text-fg shadow-lg active:scale-95"
+          style={{ touchAction: "none" }}
+          aria-label="Držet pro střelbu"
+        >
+          <Crosshair className="size-7" />
+        </button>
+      ) : (
+        <button
+          type="button"
+          onPointerDown={(e) => {
+            e.preventDefault();
+            e.currentTarget.setPointerCapture(e.pointerId);
+            holdFire(true);
+          }}
+          onPointerUp={() => holdFire(false)}
+          onPointerCancel={() => holdFire(false)}
+          onLostPointerCapture={() => holdFire(false)}
+          className="pointer-events-auto absolute bottom-28 right-5 flex size-[76px] items-center justify-center rounded-full border-2 border-rarity-uncommon bg-rarity-uncommon/20 text-sm font-bold text-fg shadow-lg active:scale-95"
+          style={{ touchAction: "none" }}
+          aria-label="Držet pro střelbu"
+        >
+          <Crosshair className="size-7" />
+        </button>
+      )}
+      <div className="pointer-events-auto absolute bottom-3 right-3 flex items-center gap-2" style={{ touchAction: "none" }}>
         <button
           type="button"
           onClick={onCharacter}
           onContextMenu={(e) => e.preventDefault()}
-          className="flex size-14 items-center justify-center rounded-full border border-border bg-surface/80 text-fg"
+          className="flex size-12 items-center justify-center rounded-full border border-border bg-surface/90 text-fg shadow-lg"
           aria-label="Postava"
         >
           <User className="size-5" />
         </button>
         <button
           type="button"
-          onPointerDown={tapAbility}
+          onPointerDown={(e) => { e.preventDefault(); tapAbility(); }}
           onContextMenu={(e) => e.preventDefault()}
-          className="flex size-14 items-center justify-center rounded-full border border-border bg-surface/80 text-fg"
+          className="flex size-12 items-center justify-center rounded-full border border-border bg-surface/90 text-fg shadow-lg"
           aria-label="Schopnost"
         >
           <Zap className="size-5" />
         </button>
         <button
           type="button"
-          onPointerDown={tapDash}
+          onPointerDown={(e) => { e.preventDefault(); tapDash(); }}
           onContextMenu={(e) => e.preventDefault()}
-          className="flex size-14 items-center justify-center rounded-full border border-border bg-surface/80 text-xs font-semibold tracking-wide"
+          className="flex size-12 items-center justify-center rounded-full border border-border bg-surface/90 text-xs font-bold text-fg shadow-lg"
+          aria-label="Dash"
         >
           DASH
         </button>
         <button
           type="button"
-          onPointerDown={tapSwap}
+          onPointerDown={(e) => { e.preventDefault(); tapSwap(); }}
           onContextMenu={(e) => e.preventDefault()}
-          className="flex size-12 items-center justify-center rounded-full border border-border bg-surface/80"
+          className="flex size-12 items-center justify-center rounded-full border border-border bg-surface/90 text-fg shadow-lg"
           aria-label="Výměna zbraně"
         >
           <Repeat className="size-4" />
@@ -4338,22 +4429,18 @@ function TouchJoystick() {
         zone,
         mode: "static",
         position: { left: "92px", bottom: "96px" },
-        size: 112,
-        threshold: 0.12,
-        color: { front: "rgba(180, 205, 222, 0.9)", back: "rgba(32, 48, 62, 0.42)" },
-        restOpacity: 0.42,
+        size: 126,
+        threshold: 0.08,
+        color: { front: "rgba(180, 205, 222, 0.95)", back: "rgba(32, 48, 62, 0.48)" },
+        restOpacity: 0.58,
         restJoystick: true,
-        multitouch: false,
+        multitouch: true,
         maxNumberOfJoysticks: 1,
       });
-      joystick.on("move", (event) => {
-        setTouchMove(event.data.vector.x, event.data.vector.y, true);
-      });
+      joystick.on("move", (event) => setTouchMove(event.data.vector.x, event.data.vector.y, true));
       joystick.on("end", () => setTouchMove(0, 0, false));
       destroyJoystick = () => joystick.destroy();
-    }).catch((error: unknown) => {
-      console.error("[VaultBreak] Failed to initialize touch joystick", error);
-    });
+    }).catch((error: unknown) => console.error("[VaultBreak] Failed to initialize movement joystick", error));
     return () => {
       cancelled = true;
       destroyJoystick?.();
@@ -4363,9 +4450,50 @@ function TouchJoystick() {
   return (
     <div
       ref={zoneRef}
-      className="pointer-events-auto absolute bottom-0 left-0 top-1/2 w-[52%]"
-      style={{ touchAction: "none", position: "absolute" }}
-      aria-label="Virtuální joystick pohybu"
+      className="pointer-events-auto absolute bottom-0 left-0 top-[42%] w-[50%]"
+      style={{ touchAction: "none" }}
+      aria-label="Joystick pohybu"
+    />
+  );
+}
+
+function TouchAimJoystick() {
+  const zoneRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const zone = zoneRef.current;
+    if (!zone) return;
+    let cancelled = false;
+    let destroyJoystick: (() => void) | null = null;
+    void import("nipplejs").then(({ default: nipplejs }) => {
+      if (cancelled) return;
+      const joystick = nipplejs.create({
+        zone,
+        mode: "static",
+        position: { right: "100px", bottom: "128px" },
+        size: 116,
+        threshold: 0.08,
+        color: { front: "rgba(122, 190, 255, 0.95)", back: "rgba(32, 48, 62, 0.42)" },
+        restOpacity: 0.5,
+        restJoystick: true,
+        multitouch: true,
+        maxNumberOfJoysticks: 1,
+      });
+      joystick.on("move", (event) => setTouchAim(event.data.vector.x, event.data.vector.y, true));
+      joystick.on("end", () => setTouchAim(0, 0, false));
+      destroyJoystick = () => joystick.destroy();
+    }).catch((error: unknown) => console.error("[VaultBreak] Failed to initialize aim joystick", error));
+    return () => {
+      cancelled = true;
+      destroyJoystick?.();
+      setTouchAim(0, 0, false);
+    };
+  }, []);
+  return (
+    <div
+      ref={zoneRef}
+      className="pointer-events-auto absolute bottom-24 right-0 top-[38%] w-[52%]"
+      style={{ touchAction: "none" }}
+      aria-label="Joystick míření"
     />
   );
 }
