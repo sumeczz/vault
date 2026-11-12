@@ -75,9 +75,18 @@ export function bindInput(target: HTMLElement): () => void {
   const onUp = (e: KeyboardEvent) => {
     keys.delete(e.code);
   };
-  const onBlur = () => keys.clear();
+  const clearTransientInput = () => {
+    keys.clear();
+    setTouchMove(0, 0, false);
+    setTouchAim(0, 0, false);
+    setTouchFireHeld(false);
+    dashTap = false;
+    abilityTap = false;
+    swapTap = false;
+  };
+  const onBlur = () => clearTransientInput();
   const onVis = () => {
-    if (document.hidden) keys.clear();
+    if (document.hidden) clearTransientInput();
   };
   const onPointer = (e: PointerEvent) => {
     if (e.pointerType !== "mouse") return;
@@ -155,6 +164,11 @@ export function setAutoFireSetting(enabled: boolean): void {
 
 export function setTouchControlsEnabled(enabled: boolean): void {
   touchControlsEnabled = enabled;
+  if (!enabled) {
+    setTouchMove(0, 0, false);
+    setTouchAim(0, 0, false);
+    setTouchFireHeld(false);
+  }
 }
 
 export function tapDash(): void {
