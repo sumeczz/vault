@@ -24,9 +24,12 @@ cloudovou obnovu; smazání úložiště profil odstraní.
 - Pohyb: WASD nebo šipky; na gamepadu levá páčka.
 - Míření a střelba: myš; na gamepadu pravá páčka a spoušť.
 - Dash: mezerník. Schopnost: F nebo Shift. Přepínání zbraní: Q/E. Statistiky: T.
-- Mobilní ovládání používá jediný virtuální joystick vlevo, automatickou
-  střelbu a míření ve směru pohybu. Pravý joystick byl odstraněn; tlačítka pro
-  schopnost, dash, výměnu zbraně a přehled postavy zůstávají vpravo.
+- Mobilní ovládání má dva dostupné režimy. **Smart Assist** používá levý
+  joystick pohybu, automatické zaměření nejbližšího živého nepřítele a tlačítko
+  pro střelbu. **Manual Twin Stick** přidává pravý joystick pro ruční míření
+  a samostatné tlačítko střelby. Režim se ukládá lokálně. VIP Combat Assist
+  (automatické míření i střelba) je zatím pouze označený jako zamčený návrh;
+  skutečné VIP oprávnění není implementováno.
 - Na PC míří myš nebo pravá páčka gamepadu. Auto-fire lze zapnout/vypnout
   v nastavení expedice i v pauze; preference se ukládá lokálně.
 - Dotykové ovládání používá NippleJS; dotykové zóny potlačují gesta stránky.
