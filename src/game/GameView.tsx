@@ -4358,7 +4358,7 @@ function TouchLayer({
           onPointerCancel={() => holdFire(false)}
           onLostPointerCapture={() => holdFire(false)}
           className="pointer-events-auto absolute bottom-[86px] right-4 flex size-[76px] items-center justify-center rounded-full border-2 border-accent-blue bg-accent-blue/25 text-sm font-bold text-fg shadow-lg active:scale-95"
-          style={{ touchAction: "none" }}
+          style={{ touchAction: "none", bottom: "calc(86px + env(safe-area-inset-bottom))" }}
           aria-label="Držet pro střelbu"
         >
           <Crosshair className="size-7" />
@@ -4381,7 +4381,7 @@ function TouchLayer({
           <Crosshair className="size-7" />
         </button>
       )}
-      <div className="pointer-events-auto absolute bottom-3 right-3 flex items-center gap-2" style={{ touchAction: "none" }}>
+      <div className="pointer-events-auto absolute right-3 flex items-center gap-2" style={{ touchAction: "none", bottom: "max(12px, env(safe-area-inset-bottom))" }}>
         <button
           type="button"
           onClick={onCharacter}
