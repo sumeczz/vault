@@ -122,6 +122,18 @@ const NEUTRAL_ACTIONS: Actions = {
   justCharacter: false,
 };
 
+describe("automatické míření", () => {
+  it("zaměří nejbližšího živého nepřítele a samo nespustí střelbu", () => {
+    memoryStorage();
+    const run = new Run("TOUCH-AIM-TARGET");
+    run.spawnEnemy("grunt", run.player.x + 160, run.player.y);
+    const actions: Actions = { ...NEUTRAL_ACTIONS, autoAim: true, fire: false };
+    run.update(0.01, actions, 800, 600);
+    assert.ok(Math.abs(run.player.aim) < 0.2, `míření neukazuje na cíl: ${run.player.aim}`);
+    assert.equal(actions.fire, false);
+  });
+});
+
 describe("mobilní režimy střelby", () => {
   it("Smart Assist automaticky míří, ale střílí pouze při držení tlačítka", () => {
     setAutoFireSetting(false);
