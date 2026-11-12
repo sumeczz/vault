@@ -2258,15 +2258,18 @@ export class Run {
     let aim = this.player.aim;
     if (input.autoAim) {
       let target: Enemy | null = null;
-      let targetDistance = Number.POSITIVE_INFINITY;
+      let targetScore = Number.POSITIVE_INFINITY;
       for (const enemy of this.enemies) {
         if (!enemy.active || enemy.hp <= 0) continue;
         const dx = enemy.x - this.player.x;
         const dy = enemy.y - this.player.y;
         const distance = dx * dx + dy * dy;
-        if (distance < targetDistance) {
+        // Elity a boss mají vyšší prioritu než běžné cíle; vzdálenost stále rozhoduje.
+        const priority = enemy.kind === "boss" ? 0.45 : enemy.affixes.length > 0 ? 0.7 : 1;
+        const score = distance * priority;
+        if (score < targetScore) {
           target = enemy;
-          targetDistance = distance;
+          targetScore = score;
         }
       }
       if (target) aim = Math.atan2(target.y - this.player.y, target.x - this.player.x);
