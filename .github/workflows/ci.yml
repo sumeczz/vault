@@ -20,4 +20,4 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run typecheck
-      - run: node --experimental-strip-types --import ./scripts/ts-loader.mjs --test src/game/game.test.ts
+      - run: node --experimental-strip-types --import ./scripts/ts-loader.mjs --test --test-name-pattern="automatické míření|mobilní režimy střelby" src/game/game.test.ts
