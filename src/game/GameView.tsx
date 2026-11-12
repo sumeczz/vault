@@ -4338,6 +4338,13 @@ function TouchLayer({
         >
           MANUAL
         </button>
+        <span
+          title="VIP Combat Assist bude dostupný po napojení ověřování VIP oprávnění."
+          aria-label="VIP Combat Assist je zatím zamčený"
+          className="flex min-h-10 items-center gap-1 rounded-lg px-2 text-[11px] font-semibold text-subtle opacity-60"
+        >
+          <Lock className="size-3" /> VIP
+        </span>
       </div>
       {mode === "assist" ? (
         <button
