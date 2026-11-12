@@ -4374,7 +4374,7 @@ function TouchLayer({
           onPointerUp={() => holdFire(false)}
           onPointerCancel={() => holdFire(false)}
           onLostPointerCapture={() => holdFire(false)}
-          className="pointer-events-auto absolute bottom-28 right-5 flex size-[76px] items-center justify-center rounded-full border-2 border-rarity-uncommon bg-rarity-uncommon/20 text-sm font-bold text-fg shadow-lg active:scale-95"
+          className="pointer-events-auto absolute bottom-[86px] right-4 flex size-[76px] items-center justify-center rounded-full border-2 border-rarity-uncommon bg-rarity-uncommon/20 text-sm font-bold text-fg shadow-lg active:scale-95"
           style={{ touchAction: "none" }}
           aria-label="Držet pro střelbu"
         >
