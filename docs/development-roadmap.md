@@ -90,6 +90,13 @@ samostatné rozhodnutí, ne součást této etapy.
 
 ### 5. Ověření mobilního ovládání a přístupnosti
 
+- Dokončit a ověřit dva dostupné režimy mobilní střelby: Smart Assist
+  (auto-aim + tlačítko střelby) a Manual Twin Stick (pravý aim joystick +
+  tlačítko střelby); VIP auto-aim + auto-fire zůstává zamčeným návrhem do
+  zavedení skutečného entitlementu.
+- Ověřit souběžný dotyk levého a pravého joysticku, držení střelby při pohybu,
+  přerušení dotyku, ztrátu pointer capture, změnu orientace a návrat z pozadí.
+
 - ověřit joystick na iOS Safari a Android Chrome: uchopení, vytažení mimo
   zónu, zrušení dotyku, změna orientace, vícedotyková tlačítka a opuštění hry;
 - ověřit, že auto-fire běží na mobilu vždy, míří podle vektoru pohybu a při
