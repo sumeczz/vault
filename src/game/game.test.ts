@@ -126,11 +126,12 @@ describe("automatické míření", () => {
   it("zaměří nejbližšího živého nepřítele a samo nespustí střelbu", () => {
     memoryStorage();
     const run = new Run("TOUCH-AIM-TARGET");
-    run.spawnEnemy("grunt", run.player.x + 160, run.player.y);
+    run.spawnEnemy("grunt", run.player.x + 100, run.player.y + 100);
     const actions: Actions = { ...NEUTRAL_ACTIONS, autoAim: true, fire: false };
     run.update(0.01, actions, 800, 600);
-    assert.ok(Math.abs(run.player.aim) < 0.2, `míření neukazuje na cíl: ${run.player.aim}`);
+    assert.ok(run.player.aim > 0.3 && run.player.aim < 1.3, `míření neukazuje na cíl: ${run.player.aim}`);
     assert.equal(actions.fire, false);
+    assert.equal(run.shotsFired, 0);
   });
 });
 
