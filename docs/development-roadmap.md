@@ -1,6 +1,6 @@
 # Plán dalšího vývoje
 
-Plán VAULTBREAK aktualizovaný k 17. 10. 2026. Zohledňuje aktuální implementaci
+Plán VAULTBREAK aktualizovaný k 13. 11. 2026. Zohledňuje aktuální implementaci
 profilu, postavy, Kodexu, prestiže a ovládání; dokončené etapy nejsou opakovány
 jako budoucí úkoly. Propojení herních systémů je popsáno v
 [`game-systems-reference.md`](./game-systems-reference.md), číselné smlouvy v
@@ -17,7 +17,7 @@ jako budoucí úkoly. Propojení herních systémů je popsáno v
 | Ekonomika/zbrojnice | Materiálové dropy, fragmenty, recepty, vyrobené startovní zbraně a trvalé komponenty |
 | Kodex | Jednorázová sbírka/CodexBonus odděleně od počtů zabití, šesti znalostních úrovní a prestiže |
 | Další postup | Výzvy, achievementy, odznaky, denní/týdenní seed a místní leaderboard |
-| Rozhraní/ovládání | Ikonové mobile-first stránky, Motion, reduced-motion, jeden touch joystick a volitelný desktop auto-fire |
+| Rozhraní/ovládání | Ikonové mobile-first stránky, Motion, reduced-motion, Smart Assist / Manual Twin Stick, velikost a průhlednost touch prvků, rozložení pro levou/pravou ruku |
 | Kvalita | Typecheck, testy herních subsystémů a produkční build procházejí; veškerá nová mobilní input cesta ještě vyžaduje reálné iOS/Android zařízení |
 
 ## Další etapy
