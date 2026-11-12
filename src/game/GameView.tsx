@@ -4357,7 +4357,7 @@ function TouchLayer({
           onPointerUp={() => holdFire(false)}
           onPointerCancel={() => holdFire(false)}
           onLostPointerCapture={() => holdFire(false)}
-          className="pointer-events-auto absolute bottom-28 right-5 flex size-[76px] items-center justify-center rounded-full border-2 border-accent-blue bg-accent-blue/25 text-sm font-bold text-fg shadow-lg active:scale-95"
+          className="pointer-events-auto absolute bottom-[86px] right-4 flex size-[76px] items-center justify-center rounded-full border-2 border-accent-blue bg-accent-blue/25 text-sm font-bold text-fg shadow-lg active:scale-95"
           style={{ touchAction: "none" }}
           aria-label="Držet pro střelbu"
         >
@@ -4476,7 +4476,7 @@ function TouchAimJoystick() {
       const joystick = nipplejs.create({
         zone,
         mode: "static",
-        position: { right: "100px", bottom: "128px" },
+        position: { right: "150px", bottom: "60px" },
         size: 116,
         threshold: 0.08,
         color: { front: "rgba(122, 190, 255, 0.95)", back: "rgba(32, 48, 62, 0.42)" },
@@ -4498,7 +4498,7 @@ function TouchAimJoystick() {
   return (
     <div
       ref={zoneRef}
-      className="pointer-events-auto absolute bottom-24 right-0 top-[38%] w-[52%]"
+      className="pointer-events-auto absolute bottom-[120px] right-0 top-[38%] w-[52%]"
       style={{ touchAction: "none" }}
       aria-label="Joystick míření"
     />
