@@ -4346,8 +4346,9 @@ function TouchLayer({
     large: { move: 140, aim: 128, fire: 88, utility: 56, moveInset: 102, moveBottom: 106, aimInset: 166, aimBottom: 68, fireBottom: 94 },
   }[settings.size];
   const opacity = { low: 0.58, medium: 0.78, high: 1 }[settings.opacity];
-  const fireSide = settings.handedness === "right" ? "right" : "left";
-  const utilitySide = fireSide;
+  const fireSideClass = settings.handedness === "right" ? "right-3" : "left-3";
+  const fireButtonSideClass = settings.handedness === "right" ? "right-4" : "left-4";
+  const utilitySideClass = fireSideClass;
   const update = (patch: Partial<TouchUiSettings>) => onSettings({ ...settings, ...patch });
   const fireStyle = mode === "assist"
     ? "border-2 border-accent-blue bg-accent-blue/25"
@@ -4356,7 +4357,7 @@ function TouchLayer({
     <div className="pointer-events-none absolute inset-0 select-none">
       <TouchJoystick settings={settings} />
       {mode === "manual" ? <TouchAimJoystick settings={settings} /> : null}
-      <div className={`pointer-events-auto absolute ${fireSide}-3 top-20 flex rounded-xl border border-border bg-surface/90 p-1 shadow-lg`} style={{ touchAction: "none", opacity }} aria-label="Režim střelby">
+      <div className={`pointer-events-auto absolute ${fireSideClass} top-20 flex rounded-xl border border-border bg-surface/90 p-1 shadow-lg`} style={{ touchAction: "none", opacity }} aria-label="Režim střelby">
         <button
           type="button"
           onClick={() => onMode("assist")}
@@ -4384,7 +4385,7 @@ function TouchLayer({
       <button
         type="button"
         onClick={() => setSettingsOpen((open) => !open)}
-        className={`pointer-events-auto absolute ${fireSide}-3 top-[132px] flex size-10 items-center justify-center rounded-xl border border-border bg-surface/90 text-fg shadow-lg`}
+        className={`pointer-events-auto absolute ${fireSideClass} top-[132px] flex size-10 items-center justify-center rounded-xl border border-border bg-surface/90 text-fg shadow-lg`}
         style={{ touchAction: "none", opacity }}
         aria-label="Nastavení dotykového ovládání"
         aria-expanded={settingsOpen}
@@ -4392,7 +4393,7 @@ function TouchLayer({
         <SlidersHorizontal className="size-4" />
       </button>
       {settingsOpen ? (
-        <div className={`pointer-events-auto absolute ${fireSide}-3 top-[178px] z-30 w-[min(248px,calc(100vw-24px))] rounded-xl border border-border bg-surface/95 p-3 shadow-xl backdrop-blur`} style={{ touchAction: "pan-y" }}>
+        <div className={`pointer-events-auto absolute ${fireSideClass} top-[178px] z-30 w-[min(248px,calc(100vw-24px))] rounded-xl border border-border bg-surface/95 p-3 shadow-xl backdrop-blur`} style={{ touchAction: "pan-y" }}>
           <div className="mb-3 text-xs font-semibold text-fg">Dotykové ovládání</div>
           <div className="mb-3">
             <div className="mb-1.5 text-[11px] text-muted">Velikost tlačítek</div>
@@ -4436,7 +4437,7 @@ function TouchLayer({
         onPointerUp={() => setTouchFireHeld(false)}
         onPointerCancel={() => setTouchFireHeld(false)}
         onLostPointerCapture={() => setTouchFireHeld(false)}
-        className={`pointer-events-auto absolute bottom-[86px] ${fireSide}-4 flex items-center justify-center rounded-full ${fireStyle} text-sm font-bold text-fg shadow-lg active:scale-95`}
+        className={`pointer-events-auto absolute bottom-[86px] ${fireButtonSideClass} flex items-center justify-center rounded-full ${fireStyle} text-sm font-bold text-fg shadow-lg active:scale-95`}
         style={{
           touchAction: "none",
           bottom: `calc(${dimensions.fireBottom}px + env(safe-area-inset-bottom))`,
@@ -4448,7 +4449,7 @@ function TouchLayer({
       >
         <Crosshair className="size-7" />
       </button>
-      <div className={`pointer-events-auto absolute ${utilitySide}-3 flex items-center gap-2`} style={{ touchAction: "none", bottom: "max(12px, env(safe-area-inset-bottom))", opacity }}>
+      <div className={`pointer-events-auto absolute ${utilitySideClass} flex items-center gap-2`} style={{ touchAction: "none", bottom: "max(12px, env(safe-area-inset-bottom))", opacity }}>
         <button
           type="button"
           onClick={onCharacter}
