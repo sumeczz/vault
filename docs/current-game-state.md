@@ -1,6 +1,6 @@
 # Aktuální stav hry
 
-Stav k 17. 10. 2026.
+Stav k 13. 11. 2026.
 
 Tento dokument je orientační přehled implementovaného produktu. Pravidla a
 propojení jednotlivých subsystémů jsou rozepsána v
@@ -32,7 +32,7 @@ cloudovou obnovu; smazání úložiště profil odstraní.
   skutečné VIP oprávnění není implementováno.
 - Na PC míří myš nebo pravá páčka gamepadu. Auto-fire lze zapnout/vypnout
   v nastavení expedice i v pauze; preference se ukládá lokálně.
-- Dotykové ovládání používá NippleJS; dotykové zóny potlačují gesta stránky.
+- Dotykové ovládání používá NippleJS; dotykové zóny potlačují gesta stránky. Velikost prvků (malá/střední/velká), průhlednost a rozložení pro levou/pravou ruku lze měnit přímo během hry; volby se ukládají lokálně.
 - Po vyčištění místnosti se nabídnou tři odměny: zbraně, schopnosti, pasivky nebo léčení. Jednou lze nabídku přehodit.
 - Místo volby lze nabídky **rozebrat na šrot** (hodnota podle rarity). Šrot se utrácí v bázi.
 - Běh končí porážkou hráče nebo dobrovolným banknutím v bázi. Po poražení bosse následuje báze: léčení o 35 % max. HP (50 % při anomálii Klid před bouří), checkpoint dalšího sektoru, obchod podle odemčení a volba z dostupných portálů Laboratoř, Kovárna, Knihovna, Aréna a Tržiště. Účinky portálů i nabídky báze popisuje `progression-rules.md`.
