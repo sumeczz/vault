@@ -1,105 +1,101 @@
-# Player & Basic Combat — výrobní specifikace v1
+﻿# Player & Basic Combat â€” vĂ˝robnĂ­ specifikace v2
 
-**Schválené zadání:** hybridní workflow, komiksové sci-fi, LibreSprite.  
-**Stav:** připraveno pro kreslení; finální obrázkové soubory zatím nejsou vytvořené.
+**ZadĂˇnĂ­:** hybridnĂ­ workflow, retro arcade comic pixel-art, LibreSprite.
+**Hra:** VAULTBREAK â€” top-down single-player roguelite stĹ™Ă­leÄŤka.
+**Stav:** specifikace pĹ™ipravena; finĂˇlnĂ­ PNG assety zatĂ­m nejsou vytvoĹ™enĂ©.
 
-## Výtvarný směr
-Komiksová sci-fi stylizace převedená do čistého pixel-artu:
-- Siluety čitelné shora, lehce izometrický dojem pouze ve stínování (kamera hry zůstává top-down).
-- Tmavý ink obrys 1–2 px, velké barevné plochy, omezené tvrdé stíny.
-- Základní paleta: grafit #171a20, ocel #d6dde4, studená modrošedá #9eb4c4, oranžová #c45c3e, světlý akcent #f0c879.
-- Oranžová značí hráčovy zbraňové/energetické akcenty; nepřátelská nebezpečí musí zůstat odlišitelná i bez barvy.
-- Žádné měkké airbrush přechody, rozmazané okraje ani textury šumu.
+## 1. VĂ˝tvarnĂˇ identita
 
-## LibreSprite — nastavení projektu
-- Barevný režim: RGB/RGBA, průhledné pozadí.
-- Pracovní canvas postavy: 64×64 px na snímek; postava zabírá přibližně 30–36 px na výšku.
-- Základní grunt: 48×48 px na snímek; tělo přibližně 24–30 px.
-- Pistole: 48×24 px, orientovaná doprava (+X); pivot v místě uchopení.
-- Projektil: samostatný 16×16 px sprite; muzzle flash a zásahový efekt samostatně.
-- Všechny snímky jedné animace mají stejný rozměr a stabilní pivot.
-- Export sprite sheetů jako PNG RGBA bez pozadí; metadata animací evidovat v manifestu.
-- FPS: idle 6–8, walk 10–12, fire 12–15, hit 12, dash 12–15, death 8–10.
+Vaultbreak dostĂˇvĂˇ vlastnĂ­ retro pulp/arcade komiksovĂ˝ vzhled. Nejde o sci-fi, fantasy RPG ani realistickou vojenskou simulaci.
 
-## 1. Hráč — player_comic
-**Silueta:** kompaktní obrněnec/průzkumník, široká ramena, výrazná helma s oranžovým hledím. Směr pohledu určuje aim zbraně, nikoli otočení celého těla.  
-**Pivot:** střed těla (32,32) v buňce 64×64.
+- Pohled shora; objekt musĂ­ bĂ˝t ÄŤitelnĂ˝ pĹ™i malĂ©m hernĂ­m zoomu.
+- SilnĂ© ink obrysy, ĂşspornĂ© pixelovĂ© stĂ­novĂˇnĂ­, omezenĂˇ paleta a ruÄŤnÄ› kreslenĂ© nepravidelnosti.
+- KomiksovĂ© akcenty: krĂˇtkĂ© speed-lines, hvÄ›zdicovĂ© zĂˇsahy, tvrdĂ© tvary vĂ˝buchĹŻ a vĂ˝raznĂˇ silueta projektilĹŻ.
+- Retro dojem tvoĹ™Ă­ kresba, kontrast, rastr a animace â€” ne pĹ™idĂˇvĂˇnĂ­ tematickĂ˝ch rekvizit, kterĂ© hra nemĂˇ.
+- Ĺ˝ĂˇdnĂ© helmy s futuristickĂ˝m hledĂ­m, energetickĂˇ jĂˇdra, robotickĂ© konÄŤetiny, meÄŤe, ĹˇtĂ­ty, runy ani vesmĂ­rnĂ© vybavenĂ­.
+- NĂˇvrhy nesmĂ­ pĹ™edjĂ­mat pĹ™Ă­bÄ›h ÄŤi prostĹ™edĂ­, kterĂ© nenĂ­ doloĹľenĂ© ve hĹ™e.
 
-| Animace | Snímků | Smyčka | Poznámka |
-|---|---:|---|---|
-| idle | 4 | ano | jemné dýchání, stabilní silueta |
-| walk | 6 | ano | střídání nohou, trup stabilní |
-| fire | 3 | ne | krátký zpětný ráz |
-| hit | 2 | ne | krátký ocelový záblesk |
-| dash | 3 | ne | naklonění; speed lines samostatný VFX |
-| death | 6 | ne | zhroucení, poslední snímek držet |
+### Paleta LibreSprite
 
-Sprite nesmí obsahovat HP bar, štít, orbitální efekty, zbraň ani text. Tyto prvky zůstávají samostatně vykreslované.
+| NĂˇzev | HEX | PouĹľitĂ­ |
+|---|---|---|
+| Ink | #17151a | obrysy, hlubokĂ© stĂ­ny |
+| Warm paper | #e8d8b5 | svÄ›tlĂ© plochy, odlesky |
+| Bone | #b9b09a | neutrĂˇlnĂ­ stĹ™ednĂ­ tĂłn |
+| Brick red | #bd4938 | hrĂˇÄŤskĂ©/bojovĂ© akcenty |
+| Mustard | #d5a642 | vĂ˝stĹ™ely, dĹŻleĹľitĂ© zĂˇblesky |
+| Petrol | #477c78 | sekundĂˇrnĂ­ kontrast |
+| Plum | #76516f | vzĂˇcnĂ©/temnĂ© akcenty |
 
-## 2. Základní zbraň — weapon_pistol
-**Silueta:** industriální sci-fi pistole s robustním závěrem, krátkou hlavní a oranžovým energetickým článkem.  
-**Canvas:** 48×24 px, orientace doprava (+X).  
-**Pivot:** bod uchopení rukojeti, výchozí souřadnice (12,17); před implementací ověřit vůči aktuálnímu umístění zbraně v renderu.  
-**Animace:** idle 1 snímek; fire recoil 2 snímky. Muzzle flash je samostatný efekt.
+Barvy jsou vĂ˝tvarnĂ© vodĂ­tko, ne hernĂ­ stav. Enemy.color, elementy, rarity, affixy a status overlay zĹŻstĂˇvajĂ­ Ĺ™Ă­zenĂ© existujĂ­cĂ­mi daty.
 
-## 3. Základní nepřítel — enemy_grunt
-**Role:** nejběžnější melee nepřítel, první protivník pro combat test.  
-**Silueta:** nízký agresivní biomechanický/robotický tvor, kulaté jádro, dvě výrazná klešťová zakončení. Od hráče se liší tvarem, ne pouze barvou.  
-**Paleta:** tmavý grafit, rezavá červeň a utlumený kovový akcent. Stávající Enemy.color zůstává datovým tintem/fallbackem.  
-**Canvas:** 48×48 px; pivot střed těla (24,24).
+## 2. TechnickĂˇ pravidla
 
-| Animace | Snímků | Smyčka |
-|---|---:|---|
-| idle | 4 | ano |
-| move | 6 | ano |
-| attack | 3 | ne |
-| hit | 2 | ne |
-| death | 5 | ne |
+- Canvas: prĹŻhlednĂ© RGBA PNG; sprite sheet v pevnĂ˝ch buĹkĂˇch.
+- Kamera zĹŻstĂˇvĂˇ top-down. ZbraĹ se vykresluje samostatnÄ› podle aim; tÄ›lo hrĂˇÄŤe se nemusĂ­ otĂˇÄŤet za kurzorem.
+- Pivoty jsou lokĂˇlnĂ­ metadata assetu. NesmĂ­ mÄ›nit PLAYER_R, Enemy.r, kolize, dosah, rychlost, HP ani timing.
+- NepĹ™ĂˇtelskĂ© projektily musĂ­ bĂ˝t rozeznatelnĂ© od hrĂˇÄŤovĂ˝ch i bez spolĂ©hĂˇnĂ­ pouze na barvu.
+- HP bar, affix, statusy, kritickĂ© zĂˇsahy a ostatnĂ­ dynamickĂ© overlaye zĹŻstĂˇvajĂ­ mimo texturu.
+- ChybÄ›jĂ­cĂ­ nebo vadnĂ˝ soubor musĂ­ bezpeÄŤnÄ› pĹ™ejĂ­t na souÄŤasnĂ© procedurĂˇlnĂ­ vykreslenĂ­.
+- V manifestu je stav planned aĹľ do existence PNG a dokonÄŤenĂ­ QA.
 
-Pohybové snímky nesmí měnit vnější rozměr siluety.
+## 3. PrvnĂ­ sada â€” skuteÄŤnĂ˝ obsah hry
 
-## 4. Základní bojové assety
+### HrĂˇÄŤ â€” player_comic
+- 64Ă—64 px, pivot (32,32), postava zabĂ­rĂˇ pĹ™ibliĹľnÄ› 30â€“36 px.
+- Silueta kompaktnĂ­ho arkĂˇdovĂ©ho stĹ™elce: praktickĂ© vrstvenĂ© obleÄŤenĂ­/vĂ˝stroj, jasnĂˇ hlava a ramena, ÄŤitelnĂ© ruce.
+- Ĺ˝ĂˇdnĂ© sci-fi brnÄ›nĂ­ ani fantasy zbroj. KonkrĂ©tnĂ­ obliÄŤej, ĂşÄŤes a drobnĂ© doplĹky se uzavĹ™ou aĹľ po konceptu.
+- Animace: idle 4/8 fps loop; walk 6/12 loop; fire 3/15; hit 2/12; dash 3/15; death 6/9.
 
-| ID | Canvas | Obsah |
-|---|---:|---|
-| projectile_kinetic | 16×16 | kovový projektil s jasným středem |
-| fx_muzzle_pistol | 32×32 | 4 snímky oranžového komiksového záblesku |
-| fx_hit_kinetic | 32×32 | 4 snímky hvězdicového zásahu |
-| fx_dash_trail | 48×48 | 4 snímky směrové stopy, oddělené od těla |
-| fx_enemy_death | 48×48 | 5 snímků rozpadových částic |
+### VĂ˝chozĂ­ pistole â€” weapon_pistol
+- 48Ă—24 px, orientace doprava (+X), pivot (12,17) podle pĹŻvodnĂ­ specifikace; pĹ™i integraci ovÄ›Ĺ™it proti drawWeapon.
+- Retro ruÄŤnĂ­ stĹ™elnĂˇ zbraĹ s ÄŤitelnou hlavnĂ­, zĂˇvÄ›rem a rukojetĂ­. Bez energetickĂ©ho ÄŤlĂˇnku ÄŤi svÄ›telnĂ˝ch sci-fi prvkĹŻ.
+- Idle 1 frame; fire/recoil 2 frames. Muzzle flash je samostatnĂ˝ efekt.
+- Vzhled pistole nesmĂ­ naznaÄŤovat jinĂ© statistiky nebo chovĂˇnĂ­ zbranÄ›.
 
-## 5. Exportní struktura
-- public/assets/game/characters/player_comic.png
-- public/assets/game/weapons/weapon_pistol.png
-- public/assets/game/enemies/enemy_grunt.png
-- public/assets/game/projectiles/projectile_kinetic.png
-- public/assets/game/effects/fx_muzzle_pistol.png
-- public/assets/game/effects/fx_hit_kinetic.png
-- public/assets/game/effects/fx_dash_trail.png
-- public/assets/game/effects/fx_enemy_death.png
+### ZĂˇkladnĂ­ nepĹ™Ă­tel â€” enemy_grunt
+- 48Ă—48 px, pivot (24,24), kontaktnĂ­/melee role dle bestiary.
+- ZĹ™etelnÄ› odliĹˇnĂˇ silueta od hrĂˇÄŤe; komiksovÄ› pĹ™ehnanĂ© proporce a agresivnĂ­ ÄŤitelnĂ© drĹľenĂ­ tÄ›la.
+- Bez robotickĂ˝ch klepet a biomechanickĂ˝ch implantĂˇtĹŻ. KonkrĂ©tnĂ­ druh odÄ›vu/tÄ›la se rozhodne podle referenÄŤnĂ­ho konceptu.
+- Animace: idle 4/8 loop; move 6/12 loop; attack 3/12; hit 2/12; death 5/9.
 
-Každý záznam v manifestu obsahuje cestu, rozměry snímku, pivot, animace, FPS a stav QA. Položky zůstávají ve stavu planned, dokud neexistují skutečné PNG soubory.
+### BojovĂ© efekty
+- projectile_kinetic: 16Ă—16, 1 frame; malĂˇ ÄŤitelnĂˇ stĹ™ela s krĂˇtkou stopou Ĺ™eĹˇenou oddÄ›lenÄ›.
+- fx_muzzle_pistol: 32Ă—32, 4 frames; ostrĂ˝ komiksovĂ˝ vĂ˝Ĺˇleh z hlavnÄ›.
+- fx_hit_kinetic: 32Ă—32, 4 frames; hvÄ›zdicovĂ˝ zĂˇsah, krĂˇtkĂ© Ăşlomky.
+- fx_dash_trail: 48Ă—48, 4 frames; smÄ›rovĂ© speed-lines, ne energetickĂˇ aura.
+- fx_enemy_death: 48Ă—48, 5 frames; krĂˇtkĂ˝ stylizovanĂ˝ rozpad/impact bez pĹ™edpokladu krve ÄŤi konkrĂ©tnĂ­ho materiĂˇlu.
 
-## 6. Hybridní pracovní postup
-1. Připravit AI referenční sheet pro hráče, pistoli a grunta (pouze koncepty).
-2. Vybrat jeden konzistentní návrh každého objektu.
-3. V LibreSprite ručně překreslit/čistit siluety, paletu, obrysy a animační snímky.
-4. Zkontrolovat pivoty, průhlednost, rozměry buněk a vizuální kontinuitu.
-5. Exportovat PNG sprite sheety a zapsat skutečná metadata.
-6. Zapojit nejprve hráče a grunta přes renderovací vrstvu s procedurálním fallbackem.
-7. Ověřit desktop i mobil. Porovnat velikost sprite s PLAYER_R a Enemy.r.
-8. Zapnout jako výchozí až po QA.
+## 4. Rozsah prvnĂ­ sady a nĂˇvaznost na zbytek hry
 
-## 7. Akceptační kritéria
-- Hráč je rozeznatelný od grunta i při zmenšení.
-- Směr zbraně odpovídá aim bez rotace těla.
-- Žádné poskakování pivotu ani změna velikosti mezi snímky.
-- Zásah, dash a střelba zůstávají čitelné i při překryvu.
-- Enemy tint, HP bar, affix a status overlay zůstávají dynamické.
-- Nepřátelské střely zůstávají vizuálně odlišné.
-- Simulace, kolize a herní hodnoty jsou beze změny.
-- Chybějící/neplatný soubor vrátí vykreslování na procedurální variantu.
-- Ověřeno v tutorialu i elitní místnosti.
+PrvnĂ­ sada je pouze pilotnĂ­ vizuĂˇlnĂ­ vzorek. Vaultbreak mĂˇ 16 archetypĹŻ zbranĂ­ a 28 druhĹŻ nepĹ™Ăˇtel; pistole a grunt proto stanovĂ­ pravidla ÄŤitelnosti, nikoli podobu vĹˇech dalĹˇĂ­ch objektĹŻ.
 
-## 8. Otevřené výtvarné volby
-Finální podoba helmy a siluety hráče, přesná podoba grunta (robot/biomechanická bytost) a návrh pistole se uzavřou podle referenčních konceptů. Finální obrázky se zatím nevytvářejí.
+DalĹˇĂ­ zbranÄ› se budou navrhovat podle skuteÄŤnĂ˝ch archetypĹŻ: pistol, smg, shotgun, rifle, sniper, launcher, beam, flamer, bouncer, minigun, rail, helix, mortar, arc, swarm a harpoon. KaĹľdĂ˝ musĂ­ mĂ­t samostatnou siluetu odpovĂ­dajĂ­cĂ­ jeho skuteÄŤnĂ©mu chovĂˇnĂ­. NepĹ™ĂˇtelĂ© se budou dÄ›lit podle reĂˇlnĂ˝ch ĂştoÄŤnĂ˝ch rolĂ­ z bestiary (melee, charge, ranged, suicide, split, support, spawner, boss).
+
+## 5. HybridnĂ­ workflow
+
+1. PĹ™ipravit pouze referenÄŤnĂ­ koncepty hrĂˇÄŤe, pistole a grunta v jednotnĂ©m retro comic smÄ›ru.
+2. SchvĂˇlit vizuĂˇlnĂ­ podobu; koncepty nejsou finĂˇlnĂ­ hernĂ­ assety.
+3. RuÄŤnÄ› pĹ™ekreslit a vyÄŤistit pixely v LibreSprite.
+4. RuÄŤnÄ› vytvoĹ™it animaÄŤnĂ­ snĂ­mky; udrĹľet pivot, mÄ›Ĺ™Ă­tko a obrys.
+5. Exportovat PNG RGBA a zapsat skuteÄŤnĂˇ metadata do manifestu.
+6. Zapojit pĹ™es renderovacĂ­ vrstvu s procedurĂˇlnĂ­m fallbackem.
+7. OvÄ›Ĺ™it v reĂˇlnĂ©m bÄ›hu: pohyb, mĂ­Ĺ™enĂ­, stĹ™elbu, zĂˇsah, dash, smrt, mobilnĂ­ zoom a pĹ™ekryv efektĹŻ.
+
+## 6. AkceptaÄŤnĂ­ kritĂ©ria
+
+- HrĂˇÄŤ, pistole a grunt jsou okamĹľitÄ› rozliĹˇitelnĂ­ pĹ™i bÄ›ĹľnĂ©m hernĂ­m zoomu.
+- StĹ™elba a smÄ›r mĂ­Ĺ™enĂ­ odpovĂ­dajĂ­ souÄŤasnĂ©mu input/render systĂ©mu.
+- NepĹ™ĂˇtelskĂ© stĹ™ely zĹŻstĂˇvajĂ­ odliĹˇitelnĂ© od hrĂˇÄŤovĂ˝ch.
+- Pivoty mezi snĂ­mky neposkakujĂ­.
+- HP, rarity, affixy, statusy a dalĹˇĂ­ overlaye zĹŻstĂˇvajĂ­ funkÄŤnĂ­.
+- NezmÄ›nila se simulace, fyzika, kolize, AI, loot ani vyvĂˇĹľenĂ­.
+- Bez assetu se vykreslĂ­ souÄŤasnĂˇ procedurĂˇlnĂ­ varianta.
+- Asset se aktivuje jako vĂ˝chozĂ­ aĹľ po QA.
+
+## 7. Co zĂˇmÄ›rnÄ› nenĂ­ souÄŤĂˇstĂ­ tĂ©to etapy
+
+- ZmÄ›na hernĂ­ch mechanik, zbranĂ­ nebo nepĹ™Ăˇtel.
+- VytvĂˇĹ™enĂ­ novĂ˝ch tĹ™Ă­d, lore, prostĹ™edĂ­ nebo pĹ™Ă­bÄ›hu.
+- NahrazenĂ­ celĂ© sady 16 zbranĂ­ a 28 nepĹ™Ăˇtel najednou.
+- FinĂˇlnĂ­ PNG pĹ™ed schvĂˇlenĂ­m referenÄŤnĂ­ podoby.

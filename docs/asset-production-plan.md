@@ -1,106 +1,65 @@
-# Vaultbreak — plán tvorby herních assetů
+﻿# Vaultbreak â€” plĂˇn tvorby hernĂ­ch assetĹŻ
 
-**Stav:** přípravná fáze, bez nových obrázkových assetů  
-**Cíl:** nahradit procedurální grafiku skutečnými herními assety bez zásahu do simulace a herních pravidel.
+**Stav:** pĹ™Ă­pravnĂˇ fĂˇze; prvnĂ­ sada mĂˇ schvĂˇlenĂ˝ technickĂ˝ rozsah, finĂˇlnĂ­ PNG zatĂ­m nejsou vytvoĹ™enĂ©.
+**CĂ­l:** nahradit procedurĂˇlnĂ­ grafiku skuteÄŤnĂ˝mi assety bez zĂˇsahu do simulace a hernĂ­ch pravidel.
 
-## 1. Varianty tvorby assetů
+## 1. SchvĂˇlenĂ˝ vĂ˝robnĂ­ postup
 
-### Varianta A — generativní AI
-- Koncepty a jednotlivé objekty se tvoří pomocí generátoru obrázků.
-- Výstupy se následně ručně čistí, sjednocují, ořezávají a skládají do sprite sheetů.
-- Výhody: rychlé hledání výtvarného směru, nízká vstupní bariéra, rychlé koncepty.
-- Nevýhody: obtížnější konzistence postavy mezi snímky, nepřesné průhlednosti a okraje, nutná ruční kontrola animací a pivotů.
-- Vhodné pro: koncepty, portréty, statické dekorace, návrhy prostředí a referenční listy.
+**HybridnĂ­ workflow:** AI se pouĹľĂ­vĂˇ pouze pro referenÄŤnĂ­ koncepty a vĂ˝tvarnĂ© podklady; finĂˇlnĂ­ pixely a animaÄŤnĂ­ snĂ­mky se ruÄŤnÄ› dokonÄŤujĂ­ v LibreSprite. Koncept nenĂ­ automaticky hernĂ­ asset.
 
-### Varianta B — ruční pixel-art / 2D editor
-- Kreslení a animace v Aseprite, LibreSprite nebo Krita.
-- Výhody: přesné rozměry, konzistentní siluety, plná kontrola nad snímky a pivoty.
-- Nevýhody: nejvyšší časová náročnost; vyžaduje výtvarnou práci.
-- Vhodné pro: hráče, nepřátele, zbraně, projektily a krátké smyčkové animace.
+## 2. SchvĂˇlenĂ˝ vĂ˝tvarnĂ˝ smÄ›r
 
-### Varianta C — hybrid (doporučeno)
-- AI slouží pro koncepty a výtvarné podklady.
-- Finální herní sprite se čistí a upravuje v Aseprite/Krita.
-- Animace se ručně sjednocují, kontrolují a exportují do PNG sprite sheetů.
-- Výhody: rychlý začátek a současně kontrola nad výslednou kvalitou, rozměry a konzistencí.
-- Nevýhody: vyžaduje jeden kontrolní krok mezi generováním a importem.
-- Vhodné pro: celý Vaultbreak.
+**Retro Arcade Comic Pixel-Art.** OriginĂˇlnĂ­ retro pulp/arkĂˇdovĂˇ komiksovĂˇ kresba pro top-down roguelite stĹ™Ă­leÄŤku.
 
-### Varianta D — hotové asset packy
-- Nákup nebo použití licencovaných balíčků (např. itch.io, GameDev Market, Kenney).
-- Výhody: hotové animace, konzistentní sady a rychlé prototypování.
-- Nevýhody: hra se musí přizpůsobit stylu balíčku; licence a redistribuce se musí ověřit; unikátní bossové a výbava mohou chybět.
-- Vhodné pro: prostředí, dekorace a dočasné prototypy.
+- SilnĂ© ink obrysy, tvrdĂ© pixelovĂ© stĂ­ny a omezenĂˇ teplĂˇ paleta.
+- VĂ˝raznĂ© siluety, krĂˇtkĂ© speed-lines, komiksovĂ© zĂˇsahy a vĂ˝buchy.
+- Bez sci-fi brnÄ›nĂ­, futuristickĂ˝ch energetickĂ˝ch zbranĂ­, fantasy meÄŤĹŻ/ĹˇtĂ­tĹŻ a neexistujĂ­cĂ­ch rekvizit.
+- Stylizace nesmĂ­ mÄ›nit hernĂ­ ÄŤitelnost ani naznaÄŤovat jinou mechaniku.
 
-## 2. Výtvarné směry k výběru
+VĂ˝robnĂ­ specifikace: `docs/player-basic-combat-asset-brief.md`.
+LibreSprite paleta: `public/assets/game/vaultbreak-comic.gpl`.
+StrojovÄ› ÄŤitelnĂ˝ seznam: `public/assets/game/manifest.json`.
 
-1. **Komiksové sci-fi:** výrazný ink obrys, tvrdé stíny, industriální tvary, oranžové a elektricky modré akcenty. Nejbližší dosavadnímu vizuálnímu směru hry.
-2. **Dark pixel-art:** 32/64px pixel-art, omezená paleta, čitelné siluety, ručně animované snímky.
-3. **Hand-painted top-down:** malované textury, výrazné světlo a stín, detailnější prostředí.
-4. **Stylizovaný vector/cartoon:** čisté tvary, pevné obrysy, snadno škálovatelné objekty, méně textur.
+## 3. TechnickĂ˝ standard
 
-**Schváleno:** hybridní workflow AI konceptů + ruční dokončení v LibreSprite, výtvarný směr komiksové sci-fi pixel-art. Podrobný výrobní brief první sady je v `docs/player-basic-combat-asset-brief.md`; paleta pro LibreSprite je v `public/assets/game/vaultbreak-comic.gpl`.
+- Top-down world-space vykreslovĂˇnĂ­; pivoty a mÄ›Ĺ™Ă­tko patĹ™Ă­ do asset metadat.
+- PNG RGBA s prĹŻhlednĂ˝m pozadĂ­m a pevnĂ˝mi buĹkami.
+- Ĺ˝ĂˇdnĂ˝ sprite nesmĂ­ mÄ›nit koliznĂ­ radius, hitbox, rychlost, HP, Ăştok ani timing.
+- HP, affix, status, rarity a dalĹˇĂ­ dynamickĂ© prvky zĹŻstĂˇvajĂ­ oddÄ›lenĂ©.
+- ProcedurĂˇlnĂ­ fallback zĹŻstĂˇvĂˇ povinnĂ˝.
+- Manifest pouĹľĂ­vĂˇ stav `planned`, dokud soubor skuteÄŤnÄ› neexistuje a neprojde QA.
 
-## 3. Technický standard
+## 4. PrvnĂ­ sada â€” Player & Basic Combat
 
-### Souřadnice a měřítko
-- Herní svět používá world-space souřadnice; assety se kreslí kolem definovaného pivotu.
-- Pivot postavy a nepřítele: střed chodidel/těla podle finálního návrhu, jednotně pro všechny snímky.
-- Měřítko se nastavuje v manifestu, nikoliv úpravou simulace.
-- Žádný sprite nesmí měnit kolizní radius ani fyzické rozměry entity.
+- HrĂˇÄŤ: idle, pohyb, stĹ™elba, zĂˇsah, dash a smrt.
+- VĂ˝chozĂ­ pistole: samostatnĂ˝ sprite s recoil animacĂ­.
+- Grunt: zĂˇkladnĂ­ kontaktnĂ­ nepĹ™Ă­tel dle bestiary.
+- Projektil, muzzle flash, hit effect, dash trail a death VFX.
 
-### Formáty
-- PNG RGBA pro statické obrázky a sprite sheety.
-- JSON manifest pro rozměry, snímky, pivot, měřítko, animace a ID assetů.
-- Žádné vložené pozadí; průhlednost musí být skutečný alpha kanál.
-- Exporty musí mít stejné rozměry buněk a konzistentní padding.
+PrvnĂ­ sada stanovĂ­ vĂ˝tvarnĂˇ pravidla. Hra mĂˇ 16 archetypĹŻ zbranĂ­ a 28 druhĹŻ nepĹ™Ăˇtel; dalĹˇĂ­ sady musĂ­ respektovat jejich existujĂ­cĂ­ hernĂ­ role a chovĂˇnĂ­.
 
-### Animace
-- Hráč: idle, walk/run, fire, hit, dash, death.
-- Nepřítel: idle/move, attack, hit, death; speciální stavy podle druhu.
-- Zbraň: samostatný objekt orientovaný podle aim; muzzle flash a projektily jsou samostatné efekty.
-- Animace nesmí ovlivňovat hitboxy, rychlost, časování útoku ani jiné herní hodnoty.
+## 5. PoĹ™adĂ­ vĂ˝roby
 
-### Čitelnost
-- Silueta musí být rozeznatelná při běžném herním zoomu i na mobilu.
-- Nepřátelské střely a nebezpečné útoky musí zůstat kontrastní.
-- HP, affix, status a telegraph overlay zůstávají oddělené od sprite.
-- Kritické informace nesmí být součástí textury (např. HP bar nebo čísla).
+1. ReferenÄŤnĂ­ koncepty hrĂˇÄŤe, pistole a grunta.
+2. SchvĂˇlenĂ­ jejich siluet a palety.
+3. RuÄŤnĂ­ dokonÄŤenĂ­ pixel-artu a animacĂ­ v LibreSprite.
+4. Export PNG RGBA a aktualizace metadat.
+5. ZapojenĂ­ pĹ™es renderovacĂ­ vrstvu s procedurĂˇlnĂ­m fallbackem.
+6. Test v bÄ›ĹľnĂ©m bÄ›hu, pĹ™i stĹ™elbÄ›, dash, zĂˇsahu, na mobilu a v elitnĂ­ mĂ­stnosti.
+7. Teprve potĂ© dalĹˇĂ­ zbranÄ›, nepĹ™ĂˇtelĂ©, prostĹ™edĂ­ a VFX.
 
-## 4. Pořadí implementace
+## 6. AkceptaÄŤnĂ­ checklist
 
-1. Referenční styl a měřítko.
-2. Hráč: idle + pohyb + smrt, poté střelba a dash.
-3. Jedna základní zbraň a projektil.
-4. Jeden běžný nepřítel: pohyb, útok, zásah a smrt.
-5. Testovací místnost a kontrola čitelnosti.
-6. Zbytek nepřátel a zbraní.
-7. Tileset místnosti, překážky, dveře a dekorace.
-8. VFX, loot, bossové a finální polish.
+- [ ] OdpovĂ­dĂˇ retro arcade comic smÄ›ru.
+- [ ] PrĹŻhlednĂ© pozadĂ­ a ÄŤistĂ© okraje.
+- [ ] SprĂˇvnĂ© rozmÄ›ry bunÄ›k a stabilnĂ­ pivot.
+- [ ] ÄŚitelnĂ˝ pĹ™i hernĂ­m zoomu i na mobilu.
+- [ ] NepĹ™ĂˇtelskĂ© stĹ™ely jsou rozeznatelnĂ©.
+- [ ] Neobsahuje hernĂ­ UI ani texty vykreslovanĂ© dynamicky.
+- [ ] ProcedurĂˇlnĂ­ fallback funguje.
+- [ ] OvÄ›Ĺ™eno v reĂˇlnĂ© hernĂ­ scĂ©nÄ›.
+- [ ] Simulace a vyvĂˇĹľenĂ­ beze zmÄ›ny.
 
-## 5. Akceptační checklist každého assetu
+## 7. Pravidlo migrace
 
-- [ ] Odpovídá zvolenému výtvarnému směru.
-- [ ] Má průhledné pozadí a čisté okraje.
-- [ ] Má správné rozměry buněk a pivot.
-- [ ] Má konzistentní měřítko napříč snímky.
-- [ ] Animace nemění zdánlivou velikost objektu.
-- [ ] Je čitelný při herním zoomu a na mobilu.
-- [ ] Neobsahuje herní UI ani texty, které mají být vykresleny dynamicky.
-- [ ] Jeho licence dovoluje použití a distribuci ve hře.
-- [ ] Při chybějícím souboru funguje procedurální fallback.
-- [ ] Je ověřen v reálné herní scéně, nikoliv jen samostatně.
-
-## 6. Pravidlo migrace
-
-Assety se budou zapojovat postupně přes renderovací vrstvu. Herní simulace, AI, kolize, HP, poškození, loot, spawn tabulky a ukládání zůstávají zdrojem pravdy. Každá etapa musí zachovat procedurální fallback a projít typecheckem, testy a buildem.
-
-## 7. První balíček — Player & Basic Combat
-
-- Hráč: idle, pohyb, střelba, zásah, dash a smrt.
-- Jedna základní zbraň s odděleným pivotem.
-- Projektil, muzzle flash a zásahový efekt.
-- Jeden základní nepřítel se smyčkou pohybu, útokem, zásahem a smrtí.
-- Testovací místnost pro kontrolu kontrastu, velikosti a animací.
-
-**Záměrně se zatím nevytváří žádné finální obrázky.** Workflow a výtvarný směr jsou schválené; kreslení začne podle výrobního briefu až po uzavření konkrétních konceptů postavy, grunta a pistole.
+Assety se zapojujĂ­ postupnÄ› pĹ™es renderovacĂ­ vrstvu. Simulace, AI, kolize, HP, poĹˇkozenĂ­, loot, spawn tabulky a uklĂˇdĂˇnĂ­ zĹŻstĂˇvajĂ­ zdrojem pravdy. KaĹľdĂˇ etapa musĂ­ projĂ­t typecheckem, testy a buildem.

@@ -3,14 +3,23 @@
   "coordinateSpace": "world",
   "artDirection": {
     "workflow": "hybrid-ai-concept-manual-libreSprite-finalization",
-    "style": "comic-scifi-pixel-art",
+    "style": "retro-arcade-comic-pixel-art",
     "editor": "LibreSprite",
+    "visualRules": [
+      "top-down silhouette readability",
+      "bold ink outlines",
+      "hard pixel shadows",
+      "comic impact shapes and speed lines",
+      "no sci-fi or fantasy weapon substitutions"
+    ],
     "palette": {
-      "graphite": "#171a20",
-      "steel": "#d6dde4",
-      "blueGrey": "#9eb4c4",
-      "orange": "#c45c3e",
-      "highlight": "#f0c879"
+      "ink": "#17151a",
+      "warmPaper": "#e8d8b5",
+      "bone": "#b9b09a",
+      "brickRed": "#bd4938",
+      "mustard": "#d5a642",
+      "petrol": "#477c78",
+      "plum": "#76516f"
     }
   },
   "integrationPolicy": {

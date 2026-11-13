@@ -1,9 +1,11 @@
 GIMP Palette
-Name: Vaultbreak Comic Sci-Fi
-Columns: 5
+Name: Vaultbreak Retro Arcade Comic
+Columns: 7
 #
-23 26 32 Graphite #171a20
-214 221 228 Steel #d6dde4
-158 180 196 Blue Grey #9eb4c4
-196 92 62 Hazard Orange #c45c3e
-240 200 121 Warm Highlight #f0c879
+23 21 26 Ink #17151a
+232 216 181 Warm Paper #e8d8b5
+185 176 154 Bone #b9b09a
+189 73 56 Brick Red #bd4938
+213 166 66 Mustard #d5a642
+71 124 120 Petrol #477c78
+118 81 111 Plum #76516f
