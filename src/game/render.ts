@@ -135,15 +135,6 @@ export function drawWeapon(ctx: CanvasRenderingContext2D, w: Weapon, x: number, 
   roundRect(ctx, 6, -bodyH / 2, bodyL, bodyH, 2);
   ctx.fill();
   ctx.stroke();
-  if (w.archetype === "pistol") {
-    // Distinct conventional pistol slide and grip details.
-    ctx.fillStyle = "#e8d8b5";
-    ctx.fillRect(8, -bodyH / 2 + 1, bodyL - 4, 1.4);
-    ctx.fillStyle = "#17151a";
-    ctx.fillRect(9, bodyH / 2 - 1, 4, 5);
-    ctx.fillStyle = "#bd4938";
-    ctx.fillRect(10, bodyH / 2 + 1, 2, 2);
-  }
   ctx.fillStyle = acc;
   roundRect(ctx, 6 + bodyL - 2, -barrelH / 2, barrelL, barrelH, 1);
   ctx.fill();
@@ -181,28 +172,10 @@ function drawEnemy(ctx: CanvasRenderingContext2D, e: Enemy) {
   const ang = Math.atan2(e.vy, e.vx);
   switch (e.kind) {
     case "grunt":
-      // Retro comic grunt: broad shoulders, forward stance, visible fists.
-      ctx.fillStyle = "rgba(0,0,0,0.35)";
-      ctx.fillRect(-e.r * 0.8, e.r * 0.48, e.r * 1.6, e.r * 0.42);
-      ctx.fillStyle = col;
-      ctx.strokeStyle = "#17151a";
-      ctx.lineWidth = 2;
-      roundRect(ctx, -e.r * 0.68, -e.r * 0.42, e.r * 1.36, e.r * 1.18, 3);
-      ctx.fill(); ctx.stroke();
-      ctx.fillStyle = "#b9b09a";
-      ctx.fillRect(-e.r * 0.45, -e.r * 0.86, e.r * 0.9, e.r * 0.62);
-      ctx.strokeRect(-e.r * 0.45, -e.r * 0.86, e.r * 0.9, e.r * 0.62);
-      ctx.fillStyle = "#17151a";
-      ctx.fillRect(-e.r * 0.28, -e.r * 0.62, 2.5, 2);
-      ctx.fillRect(e.r * 0.14, -e.r * 0.62, 2.5, 2);
-      ctx.fillStyle = "#bd4938";
-      ctx.fillRect(-e.r * 0.72, -e.r * 0.12, e.r * 0.38, e.r * 0.42);
-      ctx.fillRect(e.r * 0.34, -e.r * 0.12, e.r * 0.38, e.r * 0.42);
-      ctx.fillStyle = "#17151a";
-      ctx.fillRect(-e.r * 0.78, e.r * 0.14, e.r * 0.42, e.r * 0.34);
-      ctx.fillRect(e.r * 0.36, e.r * 0.14, e.r * 0.42, e.r * 0.34);
-      ctx.fillStyle = "#e8d8b5";
-      ctx.fillRect(-e.r * 0.22, -e.r * 0.28, e.r * 0.44, 2);
+      ctx.beginPath();
+      ctx.arc(0, 0, e.r, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
       break;
     case "rusher":
       poly(ctx, 0, 0, e.r + 2, 3, ang);
@@ -766,24 +739,17 @@ export function renderRun(ctx: CanvasRenderingContext2D, run: Run, viewW: number
     ctx.stroke();
   }
   if (pl.dashT > 0 || pl.invuln > 0.2) ctx.globalAlpha = 0.55;
-  // Pixel-blocked comic survivor; gameplay radius and aim remain unchanged.
-  const playerTone = pl.invuln > 0 && pl.invuln < HIT_FLASH() ? "#f4f4f5" : "#b9b09a";
-  ctx.fillStyle = "#17151a";
-  ctx.fillRect(-PLAYER_R * 0.72, -PLAYER_R * 0.72, PLAYER_R * 1.44, PLAYER_R * 1.55);
-  ctx.fillRect(-PLAYER_R * 1.02, -PLAYER_R * 0.2, PLAYER_R * 0.42, PLAYER_R * 0.92);
-  ctx.fillRect(PLAYER_R * 0.60, -PLAYER_R * 0.2, PLAYER_R * 0.42, PLAYER_R * 0.92);
-  ctx.fillStyle = "#477c78";
-  ctx.fillRect(-PLAYER_R * 0.62, -PLAYER_R * 0.62, PLAYER_R * 1.24, PLAYER_R * 1.25);
-  ctx.fillStyle = playerTone;
-  ctx.fillRect(-PLAYER_R * 0.42, -PLAYER_R * 0.95, PLAYER_R * 0.84, PLAYER_R * 0.72);
-  ctx.fillStyle = "#bd4938";
-  ctx.fillRect(-PLAYER_R * 0.48, -PLAYER_R * 0.82, PLAYER_R * 0.96, PLAYER_R * 0.18);
-  ctx.fillStyle = "#17151a";
-  ctx.fillRect(-PLAYER_R * 0.24, -PLAYER_R * 0.58, 2.5, 2);
-  ctx.fillRect(PLAYER_R * 0.12, -PLAYER_R * 0.58, 2.5, 2);
-  ctx.fillStyle = "#e8d8b5";
-  ctx.fillRect(-PLAYER_R * 0.42, PLAYER_R * 0.52, PLAYER_R * 0.34, PLAYER_R * 0.32);
-  ctx.fillRect(PLAYER_R * 0.08, PLAYER_R * 0.52, PLAYER_R * 0.34, PLAYER_R * 0.32);
+  ctx.fillStyle = pl.invuln > 0 && pl.invuln < HIT_FLASH() ? "#f4f4f5" : "#d6dde4";
+  ctx.beginPath();
+  ctx.arc(0, 0, PLAYER_R, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.strokeStyle = "#0a0a0b";
+  ctx.lineWidth = 2;
+  ctx.stroke();
+  ctx.fillStyle = "#0a0a0b";
+  ctx.beginPath();
+  ctx.arc(Math.cos(pl.aim) * 5, Math.sin(pl.aim) * 5, 3.2, 0, Math.PI * 2);
+  ctx.fill();
   // HP bar nad postavou hráče.
   if (pl.hp < pl.maxHp || pl.hp > 0) {
     const bw = PLAYER_R * 2.2;
