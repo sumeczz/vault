@@ -63,3 +63,8 @@ PrvnĂ­ sada stanovĂ­ vĂ˝tvarnĂˇ pravidla. Hra mĂˇ 16 archetypĹŻ zbra
 ## 7. Pravidlo migrace
 
 Assety se zapojujĂ­ postupnÄ› pĹ™es renderovacĂ­ vrstvu. Simulace, AI, kolize, HP, poĹˇkozenĂ­, loot, spawn tabulky a uklĂˇdĂˇnĂ­ zĹŻstĂˇvajĂ­ zdrojem pravdy. KaĹľdĂˇ etapa musĂ­ projĂ­t typecheckem, testy a buildem.
+
+## Referenční koncepty první sady
+
+Konkrétní vizuální zadání hráče, výchozí pistole a grunta před generováním referenčního obrázku: [vaultbreak-first-art-concepts.md](./vaultbreak-first-art-concepts.md). Finální herní PNG se nevytvářejí před schválením referenční podoby.
+
