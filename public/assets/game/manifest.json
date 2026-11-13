@@ -1,6 +1,210 @@
 {
   "version": 1,
   "coordinateSpace": "world",
-  "note": "Intentional empty starter manifest. Add approved assets after art direction is selected.",
-  "assets": {}
+  "artDirection": {
+    "workflow": "hybrid-ai-concept-manual-libreSprite-finalization",
+    "style": "comic-scifi-pixel-art",
+    "editor": "LibreSprite",
+    "palette": {
+      "graphite": "#171a20",
+      "steel": "#d6dde4",
+      "blueGrey": "#9eb4c4",
+      "orange": "#c45c3e",
+      "highlight": "#f0c879"
+    }
+  },
+  "integrationPolicy": {
+    "gameplayAuthority": "simulation",
+    "collisionFromArtwork": false,
+    "proceduralFallbackRequired": true,
+    "enableOnlyAfterQA": true
+  },
+  "assets": {
+    "player_comic": {
+      "status": "planned",
+      "file": "characters/player_comic.png",
+      "frameWidth": 64,
+      "frameHeight": 64,
+      "pivot": {
+        "x": 32,
+        "y": 32
+      },
+      "animations": {
+        "idle": {
+          "frames": 4,
+          "fps": 8,
+          "loop": true
+        },
+        "walk": {
+          "frames": 6,
+          "fps": 12,
+          "loop": true
+        },
+        "fire": {
+          "frames": 3,
+          "fps": 15,
+          "loop": false
+        },
+        "hit": {
+          "frames": 2,
+          "fps": 12,
+          "loop": false
+        },
+        "dash": {
+          "frames": 3,
+          "fps": 15,
+          "loop": false
+        },
+        "death": {
+          "frames": 6,
+          "fps": 9,
+          "loop": false
+        }
+      }
+    },
+    "weapon_pistol": {
+      "status": "planned",
+      "file": "weapons/weapon_pistol.png",
+      "frameWidth": 48,
+      "frameHeight": 24,
+      "pivot": {
+        "x": 12,
+        "y": 17
+      },
+      "animations": {
+        "idle": {
+          "frames": 1,
+          "fps": 1,
+          "loop": true
+        },
+        "fire": {
+          "frames": 2,
+          "fps": 15,
+          "loop": false
+        }
+      }
+    },
+    "enemy_grunt": {
+      "status": "planned",
+      "file": "enemies/enemy_grunt.png",
+      "frameWidth": 48,
+      "frameHeight": 48,
+      "pivot": {
+        "x": 24,
+        "y": 24
+      },
+      "animations": {
+        "idle": {
+          "frames": 4,
+          "fps": 8,
+          "loop": true
+        },
+        "move": {
+          "frames": 6,
+          "fps": 12,
+          "loop": true
+        },
+        "attack": {
+          "frames": 3,
+          "fps": 12,
+          "loop": false
+        },
+        "hit": {
+          "frames": 2,
+          "fps": 12,
+          "loop": false
+        },
+        "death": {
+          "frames": 5,
+          "fps": 9,
+          "loop": false
+        }
+      }
+    },
+    "projectile_kinetic": {
+      "status": "planned",
+      "file": "projectiles/projectile_kinetic.png",
+      "frameWidth": 16,
+      "frameHeight": 16,
+      "pivot": {
+        "x": 8,
+        "y": 8
+      },
+      "animations": {
+        "idle": {
+          "frames": 1,
+          "fps": 1,
+          "loop": true
+        }
+      }
+    },
+    "fx_muzzle_pistol": {
+      "status": "planned",
+      "file": "effects/fx_muzzle_pistol.png",
+      "frameWidth": 32,
+      "frameHeight": 32,
+      "pivot": {
+        "x": 4,
+        "y": 16
+      },
+      "animations": {
+        "play": {
+          "frames": 4,
+          "fps": 15,
+          "loop": false
+        }
+      }
+    },
+    "fx_hit_kinetic": {
+      "status": "planned",
+      "file": "effects/fx_hit_kinetic.png",
+      "frameWidth": 32,
+      "frameHeight": 32,
+      "pivot": {
+        "x": 16,
+        "y": 16
+      },
+      "animations": {
+        "play": {
+          "frames": 4,
+          "fps": 15,
+          "loop": false
+        }
+      }
+    },
+    "fx_dash_trail": {
+      "status": "planned",
+      "file": "effects/fx_dash_trail.png",
+      "frameWidth": 48,
+      "frameHeight": 48,
+      "pivot": {
+        "x": 24,
+        "y": 24
+      },
+      "animations": {
+        "play": {
+          "frames": 4,
+          "fps": 15,
+          "loop": false
+        }
+      }
+    },
+    "fx_enemy_death": {
+      "status": "planned",
+      "file": "effects/fx_enemy_death.png",
+      "frameWidth": 48,
+      "frameHeight": 48,
+      "pivot": {
+        "x": 24,
+        "y": 24
+      },
+      "animations": {
+        "play": {
+          "frames": 5,
+          "fps": 10,
+          "loop": false
+        }
+      }
+    }
+  }
 }

@@ -39,7 +39,7 @@
 3. **Hand-painted top-down:** malované textury, výrazné světlo a stín, detailnější prostředí.
 4. **Stylizovaný vector/cartoon:** čisté tvary, pevné obrysy, snadno škálovatelné objekty, méně textur.
 
-Doporučený výchozí směr je **komiksové sci-fi**, ale finální výběr má potvrdit autor hry před tvorbou finálních assetů.
+**Schváleno:** hybridní workflow AI konceptů + ruční dokončení v LibreSprite, výtvarný směr komiksové sci-fi pixel-art. Podrobný výrobní brief první sady je v `docs/player-basic-combat-asset-brief.md`; paleta pro LibreSprite je v `public/assets/game/vaultbreak-comic.gpl`.
 
 ## 3. Technický standard
 
@@ -103,4 +103,4 @@ Assety se budou zapojovat postupně přes renderovací vrstvu. Herní simulace, 
 - Jeden základní nepřítel se smyčkou pohybu, útokem, zásahem a smrtí.
 - Testovací místnost pro kontrolu kontrastu, velikosti a animací.
 
-**Záměrně se zatím nevytváří žádné finální obrázky.** Nejdříve se vybere způsob tvorby a výtvarný směr.
+**Záměrně se zatím nevytváří žádné finální obrázky.** Workflow a výtvarný směr jsou schválené; kreslení začne podle výrobního briefu až po uzavření konkrétních konceptů postavy, grunta a pistole.

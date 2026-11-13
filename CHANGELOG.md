@@ -259,3 +259,13 @@
 - Sepsány čtyři výtvarné směry, technické standardy PNG/sprite sheetů, pivotů, měřítka, animací a akceptační checklist.
 - Přidána rezervovaná složka `public/assets/game/` s verzovaným prázdným manifestem a pravidly pro budoucí import.
 - Zatím nebyly vytvořeny ani importovány žádné finální obrázky. Procedurální vykreslování a herní logika zůstávají beze změny; finální tvorba začne až po výběru výtvarného směru a workflow.
+
+
+## První sada Player & Basic Combat — schválené zadání (13. 11. 2026)
+
+- Potvrzen hybridní workflow: AI pouze pro referenční koncepty, finální kresba a animace ručně v LibreSprite.
+- Potvrzen styl comic sci-fi pixel-art a základní paleta Vaultbreak Comic Sci-Fi.
+- Přidán výrobní brief pro hráče, pistoli, grunta, projektil a čtyři bojové VFX.
+- Manifest nyní eviduje osm plánovaných assetů včetně rozměrů snímků, pivotů a animací. Všechny záznamy zůstávají ve stavu planned, dokud nebudou dodány skutečné PNG.
+- Připraveny cílové adresáře pro postavy, zbraně, nepřátele, projektily a efekty.
+- Nebyly vytvořeny obrázkové assety ani změněn renderer/simulace; procedurální vykreslování zůstává beze změny.
