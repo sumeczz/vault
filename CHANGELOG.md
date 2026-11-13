@@ -1,5 +1,12 @@
 # Changelog
 
+## Opravy dávkové střelby a startu elitních vln (13. 11. 2026)
+
+- **Pulzní dávka**: uvolnění spouště okamžitě ruší zbývající výstřely dávky; každý skutečně vystřelený projektil nyní odečte jeden náboj. Odstraněno vracení zásobníku po automatickém výstřelu dávky.
+- **Elitní místnosti**: opraven posun indexu místnosti při rozhodování o ručním startu vlny. Elitní místnosti 3 a 6 nyní správně čekají na potvrzení a následně vytvoří nepřátele.
+- **Regresní testy**: přidány testy přerušení dávky, spotřeby munice, inicializace tutorialu a spawnů elitních místností. Testy mutátorů a checkpointu izolují lokální úložiště a započítávají trvalé bonusy profilu.
+- **Ověření**: `npm run typecheck`, `npm test` (117 herních testů + 55 testů podpůrných subsystémů) a `npm run build` prošly. Browser QA ověřila menu, tutorial, hráče a přechod do boss místnosti bez chyb konzole.
+
 ## Znalost nepřátel, mobilní ovládání a systémová dokumentace (17. 10. 2026)
 
 - **Kodex a prestiž**: každý druh nepřítele má samostatný počet zabití a šest

@@ -923,8 +923,8 @@ export class Run {
     this.loot = [];
     this.rerolls = this.roomRerolls();
     this.enterRoomCue();
-    // Start vlna čeká na potvrzení hráče pouze po elitní místnosti (6. v sektoru).
-    this.waveAwaitingStart = ELITE_POS.includes(((this.roomIndex - 1) % SECTOR_SIZE + SECTOR_SIZE) % SECTOR_SIZE);
+    // Elitní místnosti 3 a 6 čekají na potvrzení; roomIndex i ELITE_POS jsou 0-based.
+    this.waveAwaitingStart = ELITE_POS.includes(this.roomIndex % SECTOR_SIZE);
     for (const e of this.enemies) e.active = false;
     for (const b of this.bullets) if (b.team === 1) b.active = false;
   }
@@ -2309,16 +2309,22 @@ export class Run {
       if (input.fire) this.player.spin = Math.min(1, this.player.spin + dt / 0.7);
       else this.player.spin = Math.max(0, this.player.spin - dt / 0.5);
     }
-    if (input.fire) this.fireWeapon();
-    if (this.player.burstLeft > 0 && this.player.burstCd <= 0) {
-      this.player.burstLeft -= 1;
-      this.player.burstCd = 0.045;
-      const savedCd = this.player.fireCd;
-      this.player.fireCd = 0;
-      const mag = this.player.mag[sl]!;
+    if (!input.fire) {
+      // Burst is a held-trigger behavior, not a queued autofire loop.
+      // Releasing fire cancels any remaining shots immediately.
+      this.player.burstLeft = 0;
+    } else {
       this.fireWeapon();
-      this.player.mag[sl] = mag;
-      this.player.fireCd = savedCd;
+      if (this.player.burstLeft > 0 && this.player.burstCd <= 0) {
+        this.player.burstLeft -= 1;
+        this.player.burstCd = 0.045;
+        const savedCd = this.player.fireCd;
+        this.player.fireCd = 0;
+        // Every projectile in a burst consumes a round through fireWeapon().
+        // Do not restore the magazine: that made burst weapons effectively infinite-ammo.
+        this.fireWeapon();
+        this.player.fireCd = savedCd;
+      }
     }
 
     if (this.phase === "combat") this.updateWaves(dt);

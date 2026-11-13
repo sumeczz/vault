@@ -194,6 +194,42 @@ describe("mobilní režimy střelby", () => {
   });
 });
 
+
+describe("pulzní dávka zbraně", () => {
+  it("po uvolnění spouště dávku zruší a každý výstřel spotřebuje munici", () => {
+    memoryStorage();
+    const run = new Run("BURST-RELEASE");
+    run.weapons[0]!.behaviors.burst = 3;
+    run.player.mag[0] = 10;
+
+    run.update(0.01, { ...NEUTRAL_ACTIONS, fire: true }, 800, 600);
+    assert.equal(run.shotsFired, 1);
+    assert.equal(run.player.mag[0], 9);
+    assert.equal(run.player.burstLeft, 2);
+
+    run.update(0.05, NEUTRAL_ACTIONS, 800, 600);
+    assert.equal(run.player.burstLeft, 0, "uvolnění spouště musí zrušit zbytek dávky");
+    assert.equal(run.shotsFired, 1, "po uvolnění nesmí vzniknout další střela");
+    assert.equal(run.player.mag[0], 9, "po uvolnění se nesmí spotřebovat další munice");
+  });
+
+  it("při držené spoušti odečte munici za všechny tři výstřely", () => {
+    memoryStorage();
+    const run = new Run("BURST-AMMO");
+    run.weapons[0]!.behaviors.burst = 3;
+    run.player.mag[0] = 10;
+
+    run.update(0.01, { ...NEUTRAL_ACTIONS, fire: true }, 800, 600);
+    run.update(0.05, { ...NEUTRAL_ACTIONS, fire: true }, 800, 600);
+    run.update(0.05, { ...NEUTRAL_ACTIONS, fire: true }, 800, 600);
+
+    assert.equal(run.shotsFired, 3);
+    assert.equal(run.player.mag[0], 7);
+    run.update(0.01, NEUTRAL_ACTIONS, 800, 600);
+    assert.equal(run.player.burstLeft, 0, "uvolnění po dávce musí zrušit případnou další dávku");
+  });
+});
+
 describe("směry dotykových joysticků", () => {
   it("převádí osu Y pohybu i míření do souřadnic herního světa", () => {
     setTouchControlsEnabled(true);
@@ -457,6 +493,7 @@ describe("kolo stesti", () => {
   });
 
   it("kevlar snizuje utrzene poskozeni", () => {
+    memoryStorage();
     const run = new Run("MUTARM");
     run.mutators = [{ id: "x", name: "X", desc: "X", polarity: "plus", effect: "armor", kind: "mult", value: 0.15 }];
     run.player.invuln = 0;
@@ -465,6 +502,7 @@ describe("kolo stesti", () => {
   });
 
   it("druhy dech zvedne max HP pri startu", () => {
+    memoryStorage();
     let seed = "";
     for (let i = 0; i < 500 && !seed; i++) {
       const m = rollMutators(`HP${i}`);
@@ -499,6 +537,7 @@ describe("kolo stesti", () => {
   });
 
   it("prechod do sektoru prelosuje a prepocita HP bonus", () => {
+    memoryStorage();
     const run = new Run("HPX");
     run.continueToNextSector(null);
     assert.equal(run.sector, 1);
@@ -770,14 +809,21 @@ describe("pevná pravidla §§6–10", () => {
   });
 
   it("catch-up a startovní rerolly z checkpointu", () => {
+    memoryStorage();
     assert.deepEqual(catchUpForSector(0), { bonusMaxHp: 0, freeRerolls: 0 });
     assert.deepEqual(catchUpForSector(1), { bonusMaxHp: 25, freeRerolls: 1 });
     assert.deepEqual(catchUpForSector(4), { bonusMaxHp: 80, freeRerolls: 1 });
     const fresh = new Run("CATCH0");
-    assert.equal(fresh.player.maxHp, Math.max(20, 100 + mutAdd(fresh.mutators, "maxHp")));
+    assert.equal(
+      fresh.player.maxHp,
+      Math.max(20, 100 + fresh.characterTalents.vitality * 8 + fresh.codex.hp + mutAdd(fresh.mutators, "maxHp")),
+    );
     assert.equal(fresh.rerolls, 1);
     const cp = new Run("CATCH1", { startSector: 1 });
-    assert.equal(cp.player.maxHp, Math.max(20, 125 + mutAdd(cp.mutators, "maxHp")));
+    assert.equal(
+      cp.player.maxHp,
+      Math.max(20, 125 + cp.characterTalents.vitality * 8 + cp.codex.hp + mutAdd(cp.mutators, "maxHp")),
+    );
     assert.equal(cp.rerolls, cp.roomRerolls() + 1);
   });
 
@@ -794,6 +840,32 @@ describe("pevná pravidla §§6–10", () => {
     assert.equal(SECTOR_SIZE, 10);
     assert.deepEqual(ELITE_POS, [2, 5]);
     assert.equal(BOSS_POS, 9);
+  });
+});
+
+describe("start vlny a spawn entit", () => {
+  it("tutorial inicializuje hrace a po startu vlny i nepratele", () => {
+    memoryStorage();
+    const run = new Run("TUTORIAL-SPAWN");
+    assert.ok(Number.isFinite(run.player.x) && Number.isFinite(run.player.y));
+    assert.equal(run.waveAwaitingStart, true);
+    assert.equal(run.startWave(), true);
+    assert.ok(run.enemies.some((enemy) => enemy.active), "prvni vlna musi vytvorit aktivni nepratele");
+  });
+
+  it("elitni mistnosti 3 a 6 cekaji na start a po potvrzeni spawnou nepratele", () => {
+    for (const roomIndex of [2, 5]) {
+      memoryStorage();
+      const run = new Run(`ELITE-SPAWN-${roomIndex}`);
+      run.roomIndex = roomIndex - 1;
+      run.nextRoom();
+      assert.equal(run.roomIndex, roomIndex);
+      assert.equal(run.room.isElite, true, `mistnost ${roomIndex + 1} musi byt elitni`);
+      assert.equal(run.waveAwaitingStart, true, `mistnost ${roomIndex + 1} musi cekat na potvrzeni`);
+      assert.equal(run.startWave(), true);
+      assert.ok(run.enemies.some((enemy) => enemy.active), `mistnost ${roomIndex + 1} musi spawnout nepratele`);
+      assert.ok(Number.isFinite(run.player.x) && Number.isFinite(run.player.y));
+    }
   });
 });
 
