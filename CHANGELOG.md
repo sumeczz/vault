@@ -251,3 +251,11 @@
 - Zvuky + procedurální hudba (explore/boss/base), jezdce hlasitosti.
 - Dotykové ovládání pro mobily (duální páčky, multitouch).
 - Testy: `src/game/game.test.ts` v `npm test` (45 testů), full-loop QA v prohlížeči.
+
+
+## Příprava pipeline pro nové herní assety (13. 11. 2026)
+
+- Přidán plán tvorby assetů: varianty AI, ruční kresby, hybridního workflow a hotových licencovaných balíčků.
+- Sepsány čtyři výtvarné směry, technické standardy PNG/sprite sheetů, pivotů, měřítka, animací a akceptační checklist.
+- Přidána rezervovaná složka `public/assets/game/` s verzovaným prázdným manifestem a pravidly pro budoucí import.
+- Zatím nebyly vytvořeny ani importovány žádné finální obrázky. Procedurální vykreslování a herní logika zůstávají beze změny; finální tvorba začne až po výběru výtvarného směru a workflow.
