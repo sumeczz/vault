@@ -269,3 +269,17 @@
 - Manifest nyní eviduje osm plánovaných assetů včetně rozměrů snímků, pivotů a animací. Všechny záznamy zůstávají ve stavu planned, dokud nebudou dodány skutečné PNG.
 - Připraveny cílové adresáře pro postavy, zbraně, nepřátele, projektily a efekty.
 - Nebyly vytvořeny obrázkové assety ani změněn renderer/simulace; procedurální vykreslování zůstává beze změny.
+
+## 2026-11-14 � Engineering governance
+
+- Added binding engineering and release standards in docs/engineering-standards.md.
+- Recorded verified audit baseline: typecheck, 117 game tests, 55 app-data/auth tests and production build pass; lint fails and browser/soak QA remain open.
+- Promoted Canvas rendering stability to P0 and paused feature expansion until production gates pass.
+
+
+## 2026-11-14 — Technická pravidla a audit připravenosti
+
+- Přidána závazná technická smlouva a release gate v `docs/engineering-standards.md`.
+- Canvas stabilita povýšena na P0; do jejího ověření se pozastavuje rozšiřování obsahu.
+- Zapsán audit: typecheck PASS, 117 herních testů PASS, 55 testů app-data/auth PASS, produkční build PASS; lint FAIL (8 chyb, 11 varování), browser/soak QA neověřeno.
+- Roadmapa a stav hry aktualizovány podle skutečně ověřeného stavu.

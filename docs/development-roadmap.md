@@ -1,6 +1,6 @@
 # Plán dalšího vývoje
 
-Plán VAULTBREAK aktualizovaný k 13. 11. 2026. Zohledňuje aktuální implementaci
+Plán VAULTBREAK aktualizovaný k 14. 11. 2026. Zohledňuje aktuální implementaci
 profilu, postavy, Kodexu, prestiže a ovládání; dokončené etapy nejsou opakovány
 jako budoucí úkoly. Propojení herních systémů je popsáno v
 [`game-systems-reference.md`](./game-systems-reference.md), číselné smlouvy v
@@ -19,6 +19,19 @@ jako budoucí úkoly. Propojení herních systémů je popsáno v
 | Další postup | Výzvy, achievementy, odznaky, denní/týdenní seed a místní leaderboard |
 | Rozhraní/ovládání | Ikonové mobile-first stránky, Motion, reduced-motion, Smart Assist / Manual Twin Stick, pevné CSS rozměry touch prvků, průhlednost, rozložení pro levou/pravou ruku |
 | Kvalita | Typecheck, testy herních subsystémů a produkční build procházejí; veškerá nová mobilní input cesta ještě vyžaduje reálné iOS/Android zařízení |
+
+## P0 — stabilizace před dalším obsahem
+
+Tato etapa má přednost před všemi produktovými rozšířeními. Do jejího dokončení se nepřidávají nové schopnosti, zbraně, efekty ani progrese. Závazná kritéria jsou v [engineering-standards.md](./engineering-standards.md).
+
+- Reprodukovat zmizení herního světa; přidat diagnostiku Canvas context lost/restored, heartbeat snímků, rozměrů/DPR, kamery/zoomu a neplatných souřadnic.
+- Opravit render loop tak, aby výjimka jednoho snímku nezastavila další snímky a chyba nebyla skryta černou obrazovkou.
+- Ověřit resize/orientaci, background/foreground, pauzu/resume a 15min běh včetně boss/endgame zátěže.
+- Doplnit renderer regresní testy a browser E2E hlavního průchodu.
+- Opravit lint chyby a skutečné spouštění skriptových testů (glob nyní vrací 0).
+- Rozdělit obrazovku, životní cyklus a renderer na jasně vlastněné moduly až po charakterizačních testech; bez plošného přepisu.
+
+**Hotovo, když:** 15min browser soak test projde bez ztráty obrazu, runtime error, duplicitních RAF smyček či nekontrolovaného růstu paměti; dev i produkční smoke projdou desktopem i mobilem; všechna release gate z engineering-standards.md jsou zelená.
 
 ## Další etapy
 

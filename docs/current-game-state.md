@@ -1,6 +1,6 @@
 # Aktuální stav hry
 
-Stav k 13. 11. 2026.
+Stav k 14. 11. 2026.
 
 Tento dokument je orientační přehled implementovaného produktu. Pravidla a
 propojení jednotlivých subsystémů jsou rozepsána v
@@ -110,7 +110,8 @@ maže obě části Kodexu.
 **Grafika**: herní DOM používá typované mapování ikon z
 `src/game/ui-icons.tsx` a Lucide. Canvas vykreslování je v `render.ts`;
 zastaralý samostatný asset-loader/SVG placeholder systém není součástí
-aktuální architektury.
+aktuální architektury. PixiJS 8 je experimentální závislost bez aktivního
+napojení na herní smyčku. Technická smlouva: [engineering-standards.md](./engineering-standards.md).
 
 ## Zvuk
 
@@ -158,7 +159,7 @@ dialogy, low-HP vignette, pulzující BOSS odznak a banner odpočtu vlny. Animac
 
 ## Spuštění a ověření
 
-Po instalaci závislostí spusť `npm run dev`; aplikace je na `http://localhost:8080`. Projekt cílí na Node.js 22. Ověření změn: `npm run typecheck`, `npm test` a `npm run build`. Celý ESLint běh má v repozitáři existující nálezy `prefer-const` mimo UI editoru.
+Po instalaci závislostí spusť `npm run dev`; aplikace je na `http://localhost:8080`. Projekt cílí na Node.js 22. Audit 14. 11. 2026: `npm run typecheck` PASS, herní testy 117/117 PASS, app-data/auth testy 55/55 PASS, `npm run build` PASS. `npm run lint` FAIL (8 chyb, 11 varování); browser smoke a dlouhý běh nejsou ověřeny. Release je blokován do odstranění nálezů a vyřešení nestability Canvas rendereru. Viz [engineering-standards.md](./engineering-standards.md).
 
 ## Známá omezení
 
