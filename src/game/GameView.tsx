@@ -398,6 +398,15 @@ export function GameView() {
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
     const unbind = bindInput(canvas);
+    let vfx: import("./vfx/VfxRenderer").VfxRenderer | null = null;
+    let vfxCancelled = false;
+    void import("./vfx/VfxRenderer").then(({ VfxRenderer }) => {
+      if (vfxCancelled) return;
+      vfx = new VfxRenderer();
+      return vfx.mount(wrap, wrap.clientWidth, wrap.clientHeight);
+    }).catch((error) => {
+      console.warn("[VaultBreak] Pixi VFX initialization failed; Canvas renderer remains active.", error);
+    });
 
     const resize = () => {
       const w = wrap.clientWidth;
@@ -408,6 +417,7 @@ export function GameView() {
       canvas.style.width = `${w}px`;
       canvas.style.height = `${h}px`;
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      vfx?.resize(w, h);
     };
     resize();
     const ro = new ResizeObserver(resize);
@@ -470,6 +480,7 @@ export function GameView() {
           run.update(0, sampleInput(), w, h);
         }
         renderRun(ctx, run, w, h);
+        vfx?.render(run, w, h);
         hudAcc.t += dt;
         if (hudAcc.t > 0.1 && sc === "playing") {
           hudAcc.t = 0;
@@ -515,6 +526,8 @@ export function GameView() {
       cancelAnimationFrame(rafRef.current);
       ro.disconnect();
       unbind();
+      vfxCancelled = true;
+      vfx?.destroy();
       delete window.__controlsTest;
     };
   }, [boot]);
