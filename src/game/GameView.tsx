@@ -4326,6 +4326,19 @@ function EndOverlay({
 
 type TouchMode = "assist" | "manual";
 
+// Touch controls are fixed in CSS pixels; viewport size never scales the controls.
+const TOUCH_CONTROL_DIMENSIONS = {
+  move: 126,
+  aim: 116,
+  fire: 76,
+  utility: 48,
+  moveInset: 92,
+  moveBottom: 96,
+  aimInset: 150,
+  aimBottom: 120,
+  fireBottom: 86,
+} as const;
+
 function TouchLayer({
   mode,
   onMode,
@@ -4340,11 +4353,7 @@ function TouchLayer({
   onCharacter: () => void;
 }) {
   const [settingsOpen, setSettingsOpen] = useState(false);
-  const dimensions = {
-    compact: { move: 112, aim: 104, fire: 68, utility: 44, moveInset: 82, moveBottom: 86, aimInset: 136, aimBottom: 52, fireBottom: 78 },
-    normal: { move: 126, aim: 116, fire: 76, utility: 48, moveInset: 92, moveBottom: 96, aimInset: 150, aimBottom: 60, fireBottom: 86 },
-    large: { move: 140, aim: 128, fire: 88, utility: 56, moveInset: 102, moveBottom: 106, aimInset: 166, aimBottom: 68, fireBottom: 94 },
-  }[settings.size];
+  const dimensions = TOUCH_CONTROL_DIMENSIONS;
   const opacity = { low: 0.58, medium: 0.78, high: 1 }[settings.opacity];
   const fireSideClass = settings.handedness === "right" ? "right-3" : "left-3";
   const fireButtonSideClass = settings.handedness === "right" ? "right-4" : "left-4";
@@ -4395,15 +4404,9 @@ function TouchLayer({
       {settingsOpen ? (
         <div className={`pointer-events-auto absolute ${fireSideClass} top-[178px] z-30 w-[min(248px,calc(100vw-24px))] rounded-xl border border-border bg-surface/95 p-3 shadow-xl backdrop-blur`} style={{ touchAction: "pan-y" }}>
           <div className="mb-3 text-xs font-semibold text-fg">Dotykové ovládání</div>
-          <div className="mb-3">
-            <div className="mb-1.5 text-[11px] text-muted">Velikost tlačítek</div>
-            <div className="grid grid-cols-3 gap-1">
-              {(["compact", "normal", "large"] as const).map((size) => (
-                <button key={size} type="button" onClick={() => update({ size })} aria-pressed={settings.size === size} className={`min-h-9 rounded-lg border px-1 text-[11px] ${settings.size === size ? "border-accent-blue bg-accent-blue/15 text-fg" : "border-border text-muted"}`}>
-                  {size === "compact" ? "Malá" : size === "normal" ? "Střední" : "Velká"}
-                </button>
-              ))}
-            </div>
+          <div className="mb-3 rounded-lg border border-border bg-surface/60 p-2">
+            <div className="text-[11px] font-semibold text-fg">Pevná velikost ovládání</div>
+            <div className="mt-1 text-[10px] leading-relaxed text-muted">Pohyb 126 px · míření 116 px · střelba 76 px · tlačítka 48 px</div>
           </div>
           <div className="mb-3">
             <div className="mb-1.5 text-[11px] text-muted">Průhlednost</div>
@@ -4503,10 +4506,10 @@ function TouchJoystick({ settings }: { settings: TouchUiSettings }) {
     let cancelled = false;
     let destroyJoystick: (() => void) | null = null;
     const dimensions = {
-      compact: { size: 112, inset: 82, bottom: 86 },
-      normal: { size: 126, inset: 92, bottom: 96 },
-      large: { size: 140, inset: 102, bottom: 106 },
-    }[settings.size];
+      size: TOUCH_CONTROL_DIMENSIONS.move,
+      inset: TOUCH_CONTROL_DIMENSIONS.moveInset,
+      bottom: TOUCH_CONTROL_DIMENSIONS.moveBottom,
+    };
     const restOpacity = { low: 0.38, medium: 0.58, high: 0.78 }[settings.opacity];
     const position = settings.handedness === "right"
       ? { left: `${dimensions.inset}px`, bottom: `${dimensions.bottom}px` }
@@ -4533,7 +4536,7 @@ function TouchJoystick({ settings }: { settings: TouchUiSettings }) {
       destroyJoystick?.();
       setTouchMove(0, 0, false);
     };
-  }, [settings.handedness, settings.opacity, settings.size]);
+  }, [settings.handedness, settings.opacity]);
   return (
     <div
       ref={zoneRef}
@@ -4552,14 +4555,16 @@ function TouchAimJoystick({ settings }: { settings: TouchUiSettings }) {
     let cancelled = false;
     let destroyJoystick: (() => void) | null = null;
     const dimensions = {
-      compact: { size: 104, inset: 136, bottom: 52 },
-      normal: { size: 116, inset: 150, bottom: 60 },
-      large: { size: 128, inset: 166, bottom: 68 },
-    }[settings.size];
+      size: TOUCH_CONTROL_DIMENSIONS.aim,
+      inset: TOUCH_CONTROL_DIMENSIONS.aimInset,
+      bottom: TOUCH_CONTROL_DIMENSIONS.aimBottom,
+    };
     const restOpacity = { low: 0.34, medium: 0.5, high: 0.72 }[settings.opacity];
+    // Keep the fixed-size aim stick fully inside its half-screen touch zone on narrow phones.
+    const inset = Math.min(dimensions.inset, Math.max(dimensions.size / 2, zone.clientWidth - dimensions.size / 2));
     const position = settings.handedness === "right"
-      ? { right: `${dimensions.inset}px`, bottom: `${dimensions.bottom}px` }
-      : { left: `${dimensions.inset}px`, bottom: `${dimensions.bottom}px` };
+      ? { right: `${inset}px`, bottom: `${dimensions.bottom}px` }
+      : { left: `${inset}px`, bottom: `${dimensions.bottom}px` };
     void import("nipplejs").then(({ default: nipplejs }) => {
       if (cancelled) return;
       const joystick = nipplejs.create({
@@ -4582,7 +4587,7 @@ function TouchAimJoystick({ settings }: { settings: TouchUiSettings }) {
       destroyJoystick?.();
       setTouchAim(0, 0, false);
     };
-  }, [settings.handedness, settings.opacity, settings.size]);
+  }, [settings.handedness, settings.opacity]);
   return (
     <div
       ref={zoneRef}

@@ -165,7 +165,7 @@ describe("mobilní režimy střelby", () => {
     assert.equal(aiming.autoAim, false);
     assert.equal(aiming.useStickAim, true);
     assert.equal(aiming.aimStickX, 0.8);
-    assert.equal(aiming.aimStickY, -0.2);
+    assert.equal(aiming.aimStickY, 0.2);
     assert.equal(aiming.fire, false);
 
     setTouchFireHeld(true);
@@ -194,14 +194,41 @@ describe("mobilní režimy střelby", () => {
   });
 });
 
+describe("směry dotykových joysticků", () => {
+  it("převádí osu Y pohybu i míření do souřadnic herního světa", () => {
+    setTouchControlsEnabled(true);
+    setTouchCombatMode("manual");
+
+    setTouchMove(0, 1, true);
+    assert.equal(sampleInput().moveY, -1, "nahoru musí být záporné světové Y");
+    setTouchMove(0, -1, true);
+    assert.equal(sampleInput().moveY, 1, "dolů musí být kladné světové Y");
+
+    setTouchAim(0, 1, true);
+    assert.equal(sampleInput().aimStickY, -1, "míření nahoru musí být záporné světové Y");
+    setTouchAim(0, -1, true);
+    assert.equal(sampleInput().aimStickY, 1, "míření dolů musí být kladné světové Y");
+
+    setTouchMove(-1, 0, true);
+    assert.equal(sampleInput().moveX, -1);
+    setTouchAim(1, 0, true);
+    assert.equal(sampleInput().aimStickX, 1);
+
+    setTouchMove(0, 0, false);
+    setTouchAim(0, 0, false);
+    setTouchControlsEnabled(false);
+    setTouchCombatMode("assist");
+  });
+});
+
 describe("nastavení mobilního ovládání", () => {
   it("načte validní hodnoty a zachová výchozí hodnoty pro neznámé položky", () => {
     assert.deepEqual(parseTouchUiSettings(JSON.stringify({
-      size: "large",
+      size: "large", // legacy value is intentionally ignored; control size is now fixed
       opacity: "low",
       handedness: "left",
       extra: true,
-    })), { size: "large", opacity: "low", handedness: "left" });
+    })), { opacity: "low", handedness: "left" });
     assert.deepEqual(parseTouchUiSettings(JSON.stringify({ size: "huge", opacity: "opaque" })), {
       ...DEFAULT_TOUCH_UI_SETTINGS,
     });

@@ -17,7 +17,7 @@ jako budoucí úkoly. Propojení herních systémů je popsáno v
 | Ekonomika/zbrojnice | Materiálové dropy, fragmenty, recepty, vyrobené startovní zbraně a trvalé komponenty |
 | Kodex | Jednorázová sbírka/CodexBonus odděleně od počtů zabití, šesti znalostních úrovní a prestiže |
 | Další postup | Výzvy, achievementy, odznaky, denní/týdenní seed a místní leaderboard |
-| Rozhraní/ovládání | Ikonové mobile-first stránky, Motion, reduced-motion, Smart Assist / Manual Twin Stick, velikost a průhlednost touch prvků, rozložení pro levou/pravou ruku |
+| Rozhraní/ovládání | Ikonové mobile-first stránky, Motion, reduced-motion, Smart Assist / Manual Twin Stick, pevné CSS rozměry touch prvků, průhlednost, rozložení pro levou/pravou ruku |
 | Kvalita | Typecheck, testy herních subsystémů a produkční build procházejí; veškerá nová mobilní input cesta ještě vyžaduje reálné iOS/Android zařízení |
 
 ## Další etapy

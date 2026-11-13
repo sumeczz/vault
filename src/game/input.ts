@@ -139,12 +139,14 @@ export function clearInjectedKeys(): void {
   injected = null;
 }
 
+/** nipplejs reports positive Y upwards; the game world uses positive Y downwards. */
 export function setTouchMove(x: number, y: number, active: boolean): void {
-  touchMove = { x, y, active };
+  touchMove = { x, y: -y, active };
 }
 
+/** Apply the same screen-to-world conversion to the manual aim stick. */
 export function setTouchAim(x: number, y: number, active: boolean): void {
-  touchAim = { x, y, active };
+  touchAim = { x, y: -y, active };
 }
 
 export function setTouchFireHeld(held: boolean): void {
