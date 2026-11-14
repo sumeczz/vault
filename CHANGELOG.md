@@ -319,4 +319,10 @@
 - ScreenHeader sjednocuje také Slovníček a Statistiky.
 - Zpětné akce v těchto obrazovkách používají sdílený Button.
 
+\n## Sjednocení hlavního menu – část 4 (14. 11. 2026)
+
+- Hlavní akce, zvuk, terminál a reset profilu převedeny na sdílený Button.
+- Výzvy a Terminál používají sdílené Panel a SectionHeading.
+- Přidán jednotný vstupní prvek pro seed běhu.
+
 \n

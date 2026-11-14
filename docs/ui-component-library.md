@@ -42,4 +42,12 @@ Komponenty používají canonical tokeny definované v `src/styles.css`: backgro
 - ScreenHeader rozšířen na Slovníček a Statistiky.
 - Zpětné akce v těchto obrazovkách používají sdílenou komponentu Button místo lokálních tříd.
 - Všechny hlavní metastránky nyní používají stejnou hlavičku a stejnou vizuální hierarchii.
+\n## Design system – část 4: hlavní menu
+
+- Hlavní akce Zahájit expedici používá sdílený Button (primary, large, full width).
+- Zvuk, terminálové akce a reset profilu používají Button se sdílenými variantami.
+- Výzvy a Terminál jsou sjednocené přes Panel + SectionHeading.
+- Seed běhu používá společný vstup `.vb-ui-input` s jednotným focus stavem.
+- Denní a týdenní výzvy zůstávají jako informační dlaždice, protože zobrazují vedle akce také seed, nejlepší úroveň a počet pokusů.
+- Výběr sektoru a zbrojnice si zachovávají vlastní skupinové stavy `aria-pressed`; nejde o obecná tlačítka.
 \n

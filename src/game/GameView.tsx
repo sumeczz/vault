@@ -155,7 +155,7 @@ import { dpsEstimate, starterWeapon, weaponBehaviorsList } from "./weapons";
 import { AuthScreen } from "./auth-screen";
 import { loadProfile, getProfileNickname } from "./auth";
 import { EnemyIcon, MaterialIcon, TalentIcon, WeaponIcon } from "./ui-icons";
-import { Button, ScreenHeader } from "@/components/ui";
+import { Button, Panel, ScreenHeader, SectionHeading } from "@/components/ui";
 
 type Screen = "menu" | "postava" | "kovarna" | "help" | "admin" | "codex" | "achievements" | "cesta" | "slovnicek" | "stats" | "playing" | "paused" | "loot" | "dead" | "win" | "base" | "wheel";
 
@@ -1780,14 +1780,16 @@ function Menu({
           <Link to="/moba" className="flex min-h-12 items-center rounded-xl border border-border bg-surface px-2.5 text-[11px] font-medium text-muted transition-colors hover:border-accent-blue hover:text-fg">
             Nexus Arena →
           </Link>
-          <button
-            type="button"
+          <Button
+            variant="secondary"
+            size="md"
+            className="size-12 !min-h-12 !p-0"
             onClick={onMute}
-            className="flex size-12 items-center justify-center rounded-xl border border-border bg-surface text-muted transition-transform active:scale-95"
             aria-label={muted ? "Zapnout zvuk" : "Ztlumit"}
+            icon={muted ? <VolumeX className="size-5" /> : <Volume2 className="size-5" />}
           >
-            {muted ? <VolumeX className="size-5" /> : <Volume2 className="size-5" />}
-          </button>
+            <span className="sr-only">{muted ? "Zapnout zvuk" : "Ztlumit"}</span>
+          </Button>
         </div>
       </div>
       <div className="vb-hero vb-enter-soft w-full max-w-md shrink-0" style={{ "--vb-i": 1 } as CSSProperties}>
@@ -1816,10 +1818,17 @@ function Menu({
         </div>
       </div>
       <div className="flex w-full max-w-md shrink-0 flex-col gap-3">
-        <button type="button" onClick={onPlay} className="vb-btn-primary vb-stagger" style={{ "--vb-i": 2 } as CSSProperties}>
-          <Play className="size-5" />
+        <Button
+          variant="primary"
+          size="lg"
+          fullWidth
+          onClick={onPlay}
+          className="vb-stagger"
+          style={{ "--vb-i": 2 } as CSSProperties}
+          icon={<Play className="size-5" />}
+        >
           {startSector > 1 ? `Zahájit od sektoru ${startSector}` : "Zahájit expedici"}
-        </button>
+        </Button>
         <details className="vb-stagger rounded-xl border border-border bg-surface" style={{ "--vb-i": 2 } as CSSProperties}>
           <summary className="flex min-h-12 cursor-pointer list-none items-center justify-between gap-2 px-3 py-2 text-xs marker:hidden">
             <span className="flex items-center gap-2 text-fg"><SlidersHorizontal className="size-4 text-accent-blue" />Nastavení expedice</span>
@@ -1835,7 +1844,7 @@ function Menu({
           <input
             value={seed}
             onChange={(e) => onSeed(e.target.value.toUpperCase().slice(0, 10))}
-            className="h-13 rounded-xl border border-border bg-surface px-4 font-mono text-base tracking-[0.2em] text-fg outline-none select-text focus:border-accent"
+            className="vb-ui-input h-13 font-mono text-base tracking-[0.2em]"
             spellCheck={false}
             autoComplete="off"
             suppressHydrationWarning
@@ -1942,10 +1951,8 @@ function Menu({
         </div>
           </div>
         </details>
-        <section className="rounded-2xl border border-border bg-surface p-3">
-          <h2 className="flex items-center gap-2 font-mono text-[11px] tracking-[0.25em] text-subtle">
-            <CalendarDays className="size-4 text-accent-blue" /> VÝZVY
-          </h2>
+        <Panel padding="md" className="space-y-3">
+          <SectionHeading title="Výzvy" eyebrow="Pravidelné expedice" action={<CalendarDays className="size-4 text-accent-blue" />} />
           <div className="mt-2 grid grid-cols-2 gap-2">
             <button
               type="button"
@@ -1974,56 +1981,45 @@ function Menu({
               </span>
             </button>
           </div>
-        </section>
-        <h2 className="flex items-center gap-2 pt-1 font-mono text-[11px] tracking-[0.25em] text-subtle">
-          <SlidersHorizontal className="size-4 text-accent-blue" />
-          TERMINÁL
-        </h2>
-        <div className="grid grid-cols-2 gap-2">
-          <button type="button" onClick={onHelp} className="vb-btn-ghost min-h-12">
-            <HelpCircle className="size-5" />Jak hrát
-          </button>
-          <button type="button" onClick={onSlovnicek} className="vb-btn-ghost min-h-12">
-            <BookMarked className="size-5" />Slovníček
-          </button>
-          <button type="button" onClick={onStats} className="vb-btn-ghost min-h-12">
-            <BarChart3 className="size-5" />Statistiky profilu
-          </button>
-          <button type="button" onClick={onAdmin} className="vb-btn-ghost min-h-12 text-muted">
-            <SlidersHorizontal className="size-5" />Správce
-          </button>
-        </div>
+        </Panel>
+        <Panel padding="md" className="space-y-3">
+          <SectionHeading title="Terminál" eyebrow="Databáze a nástroje" action={<SlidersHorizontal className="size-4 text-accent-blue" />} />
+          <div className="grid grid-cols-2 gap-2">
+            <Button variant="secondary" fullWidth onClick={onHelp} icon={<HelpCircle className="size-5" />}>Jak hrát</Button>
+            <Button variant="secondary" fullWidth onClick={onSlovnicek} icon={<BookMarked className="size-5" />}>Slovníček</Button>
+            <Button variant="secondary" fullWidth onClick={onStats} icon={<BarChart3 className="size-5" />}>Statistiky profilu</Button>
+            <Button variant="subtle" fullWidth onClick={onAdmin} icon={<SlidersHorizontal className="size-5" />}>Správce</Button>
+          </div>
+        </Panel>
         <details className="rounded-xl border border-border bg-surface">
           <summary className="flex min-h-12 cursor-pointer list-none items-center gap-2 px-3 text-xs text-muted marker:hidden">
             <Trash2 className="size-4" />Údržba profilu
           </summary>
           <div className="border-t border-border p-3">
         {!resetArmed ? (
-          <button
-            type="button"
+          <Button
+            variant="secondary"
+            fullWidth
             onClick={() => {
               setResetArmed(true);
               window.setTimeout(() => setResetArmed(false), 6000);
             }}
-            className="vb-btn-ghost vb-stagger text-muted"
-            style={{ "--vb-i": 10 } as CSSProperties}
+            icon={<Trash2 className="size-5" />}
           >
-            <Trash2 className="size-5" />
             Resetovat progress
-          </button>
+          </Button>
         ) : (
-          <button
-            type="button"
+          <Button
+            variant="danger"
+            fullWidth
             onClick={() => {
               resetProgress();
               window.location.reload();
             }}
-            className="vb-btn-ghost vb-stagger border-danger/60 text-danger"
-            style={{ "--vb-i": 10 } as CSSProperties}
+            icon={<Trash2 className="size-5" />}
           >
-            <Trash2 className="size-5" />
             Opravdu smazat vše? Klikni pro potvrzení
-          </button>
+          </Button>
         )}
             <p className="mt-2 text-[11px] leading-relaxed text-subtle">
               Reset smaže profilový postup, level a XP postavy, talenty, materiály, vyrobené zbraně, Kodex včetně znalostí a prestiže, achievementy, odznaky, výzvy i blueprinty. Nastavení a zvuk zůstanou.

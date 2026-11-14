@@ -644,3 +644,25 @@
     line-height: 1.5;
   }
 }
+
+@layer components {
+  .vb-ui-input {
+    display: block;
+    width: 100%;
+    min-width: 0;
+    min-height: 48px;
+    border: 1px solid var(--color-border-default);
+    border-radius: var(--radius-md);
+    background: var(--color-surface-raised);
+    padding: 0.7rem 0.9rem;
+    color: var(--color-text-primary);
+    outline: none;
+    transition: border-color 140ms ease, box-shadow 140ms ease;
+  }
+  .vb-ui-input::placeholder { color: var(--color-text-secondary); opacity: .72; }
+  .vb-ui-input:focus-visible {
+    border-color: var(--color-accent-blue);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-accent-blue) 18%, transparent);
+  }
+  .vb-ui-input:disabled { cursor: not-allowed; opacity: .5; }
+}
