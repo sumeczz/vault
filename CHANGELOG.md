@@ -300,3 +300,11 @@
 - Resize ignoruje nulové/neplatné rozměry a mění backing store pouze při skutečné změně pixelových rozměrů.
 - `npm run test` nyní explicitně spouští devět skriptových testovacích souborů; dřívější glob na Windows hlásil 0 testů.
 - Uživatelský manuální soak: cca 15 minut hraní, postup do cca 10. úrovně a návrat do menu — PASS. Automatizovaný soak zůstává otevřený.
+
+
+## 2026-11-14 — Jednotný vizuální standard
+
+- Analyzováno všech 5 referenčních obrázků ve složce `graphics/` (UI specifikace, sci-fi asset bible, loot/rarity, gameplay HUD a atlas postavy).
+- Vytvořen `graphics/VAULTBREAK-VISUAL-STANDARD.md` jako centrální kontrakt pro barvy, typografii, layout, tlačítka, karty, navigaci, ikony, HUD, raritu, zbraně, postavy, nepřátele, prostředí, VFX a výrobu assetů.
+- Popsány rozpory mezi referenčními obrázky, aktuálními rarity barvami v kódu a schváleným retro pixel-art workflow; dokument záměrně nemění herní kód ani nevybírá nový art direction bez schválení.
+- `docs/ui-rules.md` nyní odkazuje na centrální vizuální standard.
