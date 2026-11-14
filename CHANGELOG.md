@@ -360,3 +360,11 @@
 - Sklad materiálů je nově dostupný také na stránce Postava: šrot, slitiny, jádra, elementární katalyzátory a fragmenty zbraní.
 - Z detailu zbraně lze přejít přímo do Kovárny na výrobu a úpravy; nasazení zbraně zůstává dostupné v inventáři.
 - Změny používají existující data postavy a výpočty komponent, bez změny save formátu a ekonomických pravidel.
+
+
+## [Unreleased] – Sjednocení zobrazení zbraní
+
+- Přidány sdílené komponenty `WeaponPanel` a `WeaponStatGrid` pro jednotné zobrazení rarity, identity a šesti hlavních statistik zbraně.
+- Loot karty, detail zbrojnice a výběr výroby v Kovárně používají stejné statistické hodnoty a jejich pořadí.
+- Kovárna zobrazuje referenční parametry vybraného archetypu a započítává existující komponenty vyrobené zbraně.
+- Mechaniky lootu, receptů, rarity, komponent a ukládání zůstávají beze změny.

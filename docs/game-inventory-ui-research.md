@@ -43,3 +43,13 @@ Zvolit srozumitelnou informační architekturu pro inventář, výběr lootu a k
 - Abratabia — Inventory UI Design Patterns for Games (sekundární praktický přehled): https://www.abratabia.com/game-ui-design/inventory-ui.php
 
 Oficiální platformní doporučení a akademický zdroj mají přednost; sekundární přehled slouží pouze jako praktické doplnění.
+
+
+## Implementace sdíleného zobrazení zbraně
+
+- Přidán komponentový základ `src/game/weapon-ui.tsx`: `WeaponPanel` a `WeaponStatGrid` sdílejí identitu, raritu, element, unikátní stav a šest klíčových statistik.
+- Loot karty používají stejný výpočet a pořadí statistik jako zbrojnice a Kovárna.
+- Detail zbrojnice používá společný panel pro vlastněnou zbraň včetně aktuálně osazených komponent.
+- Výběr výroby v Kovárně zobrazuje referenční statistiky archetypu; u již vyrobené zbraně jsou započtené její komponenty.
+- Výměna komponent v Kovárně nadále ukazuje rozdíl před/po a používá stejný zdroj výpočtu komponent jako inventář.
+- UI změna nemění loot generování, raritu, statistiky uložených zbraní ani save formát.

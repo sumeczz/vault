@@ -152,6 +152,7 @@ import { BOSS_PHASE_NAMES, ENEMY_ATTACK_LABEL, ENEMY_ATTACK, ENEMY_NAME, ENEMY_O
 import { mutMult } from "./mutators";
 import { RARITY_COLOR, RARITY_LABEL, ARCHETYPE_LABEL, ELEMENT_COLOR, MAGNET_R, type ArchetypeId, type Element, type LootOffer, type Rarity, type Weapon } from "./types";
 import { dpsEstimate, starterWeapon, weaponBehaviorsList } from "./weapons";
+import { WeaponPanel, WeaponStatGrid } from "./weapon-ui";
 import { AuthScreen } from "./auth-screen";
 import { loadProfile, getProfileNickname } from "./auth";
 import { EnemyIcon, MaterialIcon, TalentIcon, WeaponIcon } from "./ui-icons";
@@ -1210,9 +1211,10 @@ function PostavaScreen({
     && (!componentCost.catalyst || (character.materials.catalysts[componentCost.catalyst] ?? 0) >= componentCost.catalysts);
   const componentLevelUnlocked = character.level >= componentCost.requiredLevel;
   const selectedWeaponDef = weaponDefs.find((definition) => definition.archetype === selectedForgeWeapon);
-  const currentComponentPreview = selectedWeaponDef
+  const selectedForgePreview = selectedWeaponDef
     ? previewComponentWeapon(selectedWeaponDef, selectedLoadout)
     : null;
+  const currentComponentPreview = selectedForgePreview;
   const candidateComponentPreview = selectedWeaponDef
     ? previewComponentWeapon(selectedWeaponDef, {
         ...selectedLoadout,
@@ -1335,30 +1337,12 @@ function PostavaScreen({
                       ))}
                     </div>
                   ) : null}
-                  <div className="mt-3 flex items-start gap-3">
-                    <div className="flex size-14 shrink-0 items-center justify-center rounded-xl border border-border bg-surface">
-                      <WeaponIcon archetype={ownedArmoryWeapon} className="size-9 text-ice" />
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <p className="font-mono text-[10px] tracking-[0.18em] text-subtle">DETAIL ZBRANĚ</p>
-                      <h3 className="mt-0.5 truncate text-base font-semibold text-fg">{ARCHETYPE_LABEL[ownedArmoryWeapon].name}</h3>
-                      <p className="mt-0.5 text-[11px] text-muted">{ELEMENT_NAME[ownedArmoryPreview.element] ?? ownedArmoryPreview.element} · {ownedArmoryPreview.stats.pellets > 1 ? `${ownedArmoryPreview.stats.pellets.toFixed(0)} projektily na výstřel` : "jednotlivý projektil"}</p>
-                    </div>
-                  </div>
-                  <div className="mt-3 grid grid-cols-3 gap-2">
-                    {[
-                      ["DMG", ownedArmoryPreview.stats.damage.toFixed(1)],
-                      ["DPS", dpsEstimate(ownedArmoryPreview).toFixed(1)],
-                      ["RPM", ownedArmoryPreview.stats.rpm.toFixed(0)],
-                      ["ZÁSOBNÍK", ownedArmoryPreview.stats.magSize.toFixed(0)],
-                      ["PŘEBITÍ", `${ownedArmoryPreview.stats.reload.toFixed(2)} s`],
-                      ["KRIT", `${(ownedArmoryPreview.stats.critChance * 100).toFixed(0)} %`],
-                    ].map(([label, value]) => (
-                      <div key={label} className="rounded-lg border border-border/70 bg-surface px-2 py-2 text-center">
-                        <span className="block font-mono text-[9px] tracking-wider text-subtle">{label}</span>
-                        <span className="mt-0.5 block font-mono text-sm font-semibold tabular-nums text-fg">{value}</span>
-                      </div>
-                    ))}
+                  <div className="mt-3">
+                    <WeaponPanel
+                      weapon={ownedArmoryPreview}
+                      title={ARCHETYPE_LABEL[ownedArmoryWeapon].name}
+                      subtitle={`${ELEMENT_NAME[ownedArmoryPreview.element] ?? ownedArmoryPreview.element} · ${ownedArmoryPreview.stats.pellets > 1 ? `${ownedArmoryPreview.stats.pellets.toFixed(0)} projektily na výstřel` : "jednotlivý projektil"}`}
+                    />
                   </div>
                   <div className="mt-3 border-t border-border pt-2">
                     <p className="mb-2 font-mono text-[10px] tracking-[0.16em] text-subtle">OSAZENÉ SOUČÁSTI</p>
@@ -1671,6 +1655,7 @@ function PostavaScreen({
             })}
           </div>
           <div className="mt-2 rounded-lg border border-border bg-elevated p-2.5">
+            {selectedForgePreview ? <div className="mb-2"><WeaponPanel weapon={selectedForgePreview} title={ARCHETYPE_LABEL[selectedForgeWeapon].name} subtitle="Referenční statistiky archetypu · aktuální komponenty" density="compact" /></div> : null}
             <div className="flex items-center gap-2">
               <span className="flex size-10 shrink-0 items-center justify-center rounded-md border border-border bg-surface text-ice">
                 <WeaponIcon archetype={selectedForgeWeapon} className="size-6" />
@@ -4300,7 +4285,7 @@ function LootCard({ index, offer, current, selected, onPick }: { index: number; 
         </span>
       </div>
       <div className="mt-1 text-xs leading-relaxed text-muted">{desc}</div>
-      {statGrid ? (
+      {offer.kind === "weapon" ? <div className="mt-2"><WeaponStatGrid weapon={offer.weapon} density="compact" /></div> : statGrid ? (
         <div className="mt-2 grid grid-cols-3 gap-1 font-mono text-[11px] tabular-nums">
           {statGrid.map((s) => (
             <div key={s.label}>
