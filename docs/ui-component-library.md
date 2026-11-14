@@ -67,3 +67,12 @@ Komponenty používají canonical tokeny definované v `src/styles.css`: backgro
 - Výběr zbraní ve výrobě i úpravách používá 2 sloupce na telefonu, 3 na středních šířkách a 4 na široké obrazovce.
 - Sloty úprav mají větší rozestupy a dotykové cíle; výběr komponent zůstává čitelný v jednom sloupci na telefonu a přechází do více sloupců na širších obrazovkách.
 - Zachována je stávající logika receptů, materiálů, level požadavků, potvrzování výměny a nasazení startovní zbraně.
+
+
+## Design system – část 7: zbrojnice postavy
+
+- Stránka Postava obsahuje samostatnou sekci Zbrojnice: vlastněné zbraně jsou v responzivní mřížce, detail vybrané položky je oddělený panel.
+- Výběr má viditelný stav a `aria-pressed`; nasazená startovní zbraň je označena textovým štítkem.
+- Detail používá jednotnou statistickou mřížku DMG/DPS/RPM, zásobník/přebití/krit a samostatnou oblast tří slotů součástí.
+- Mobil zobrazuje výběr nad detailem v jednom sloupci; širší obrazovky rozšiřují mřížku bez změny informační hierarchie.
+- Nasazení používá sdílený Button a existující akci `onStarter`; data a herní mechaniky zůstávají beze změny.

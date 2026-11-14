@@ -1138,6 +1138,24 @@ function PostavaScreen({
   const [selectedForgeWeapon, setSelectedForgeWeapon] = useState<ArchetypeId>(
     character.starterArchetype ?? "pistol",
   );
+  const [selectedArmoryWeapon, setSelectedArmoryWeapon] = useState<ArchetypeId>(
+    character.starterArchetype ?? character.craftedWeapons[0] ?? "pistol",
+  );
+  const ownedArmoryWeapon = character.craftedWeapons.includes(selectedArmoryWeapon)
+    ? selectedArmoryWeapon
+    : character.craftedWeapons[0];
+  const ownedArmoryDefinition = ownedArmoryWeapon
+    ? weaponDefs.find((definition) => definition.archetype === ownedArmoryWeapon)
+    : undefined;
+  const ownedArmoryPreview = ownedArmoryDefinition
+    ? previewComponentWeapon(
+        ownedArmoryDefinition,
+        character.weaponComponents[ownedArmoryWeapon],
+      )
+    : null;
+  const ownedArmoryComponents = ownedArmoryWeapon
+    ? character.weaponComponents[ownedArmoryWeapon] ?? {}
+    : {};
   const [forgeTab, setForgeTab] = useState<"craft" | "upgrade">("craft");
   const [activeSlot, setActiveSlot] = useState<WeaponComponentSlot>("barrel");
   const [selectedComponentId, setSelectedComponentId] = useState<WeaponComponentId>("barrel-precision");
@@ -1210,6 +1228,113 @@ function PostavaScreen({
         />
         {notice ? <p className="rounded-xl border border-accent/50 bg-surface px-3 py-2 text-sm text-fg" role="status">{notice}</p> : null}
         {mode === "postava" ? <CharacterPanel save={save} character={character} /> : null}
+        {mode === "postava" ? (
+          <section className="rounded-2xl border border-border bg-surface p-3 sm:p-4">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <h2 className="flex items-center gap-2 font-mono text-[11px] tracking-[0.2em] text-subtle">
+                  <Swords className="size-4 text-ice" /> ZBROJNICE
+                </h2>
+                <p className="mt-1 text-xs text-muted">Vyrobené zbraně a jejich aktuální osazení</p>
+              </div>
+              <Badge tone="neutral">{character.craftedWeapons.length} / {Object.keys(ARCHETYPE_LABEL).length}</Badge>
+            </div>
+            {character.craftedWeapons.length > 0 && ownedArmoryWeapon && ownedArmoryPreview ? (
+              <>
+                <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3" aria-label="Vlastněné zbraně">
+                  {character.craftedWeapons.map((archetype) => {
+                    const active = character.starterArchetype === archetype;
+                    const selected = ownedArmoryWeapon === archetype;
+                    const loadout = character.weaponComponents[archetype] ?? {};
+                    const componentCount = Object.keys(loadout).length;
+                    return (
+                      <button
+                        key={archetype}
+                        type="button"
+                        onClick={() => setSelectedArmoryWeapon(archetype)}
+                        aria-pressed={selected}
+                        className={`relative flex min-h-[92px] min-w-0 flex-col items-center justify-center gap-1 rounded-xl border p-2 text-center transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-blue ${
+                          selected ? "border-accent-blue bg-surface-raised text-fg ring-1 ring-accent-blue" : "border-border bg-elevated text-muted hover:border-accent-blue/60"
+                        }`}
+                      >
+                        <WeaponIcon archetype={archetype} className="size-7 text-ice" />
+                        <span className="max-w-full truncate text-xs font-semibold">{ARCHETYPE_LABEL[archetype].name}</span>
+                        <span className="text-[10px] text-subtle">{componentCount}/3 součásti</span>
+                        {active ? <span className="absolute right-1.5 top-1.5 rounded-md border border-accent-blue/50 bg-surface px-1.5 py-0.5 font-mono text-[9px] text-accent-blue">NASAZENA</span> : null}
+                      </button>
+                    );
+                  })}
+                </div>
+                <div className="mt-3 rounded-xl border border-border bg-elevated p-3">
+                  <div className="flex items-start gap-3">
+                    <div className="flex size-14 shrink-0 items-center justify-center rounded-xl border border-border bg-surface">
+                      <WeaponIcon archetype={ownedArmoryWeapon} className="size-9 text-ice" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="font-mono text-[10px] tracking-[0.18em] text-subtle">DETAIL ZBRANĚ</p>
+                      <h3 className="mt-0.5 truncate text-base font-semibold text-fg">{ARCHETYPE_LABEL[ownedArmoryWeapon].name}</h3>
+                      <p className="mt-0.5 text-[11px] text-muted">{ELEMENT_NAME[ownedArmoryPreview.element] ?? ownedArmoryPreview.element} · {ownedArmoryPreview.stats.pellets > 1 ? `${ownedArmoryPreview.stats.pellets.toFixed(0)} projektily na výstřel` : "jednotlivý projektil"}</p>
+                    </div>
+                  </div>
+                  <div className="mt-3 grid grid-cols-3 gap-2">
+                    {[
+                      ["DMG", ownedArmoryPreview.stats.damage.toFixed(1)],
+                      ["DPS", dpsEstimate(ownedArmoryPreview).toFixed(1)],
+                      ["RPM", ownedArmoryPreview.stats.rpm.toFixed(0)],
+                      ["ZÁSOBNÍK", ownedArmoryPreview.stats.magSize.toFixed(0)],
+                      ["PŘEBITÍ", `${ownedArmoryPreview.stats.reload.toFixed(2)} s`],
+                      ["KRIT", `${(ownedArmoryPreview.stats.critChance * 100).toFixed(0)} %`],
+                    ].map(([label, value]) => (
+                      <div key={label} className="rounded-lg border border-border/70 bg-surface px-2 py-2 text-center">
+                        <span className="block font-mono text-[9px] tracking-wider text-subtle">{label}</span>
+                        <span className="mt-0.5 block font-mono text-sm font-semibold tabular-nums text-fg">{value}</span>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="mt-3 border-t border-border pt-2">
+                    <p className="mb-2 font-mono text-[10px] tracking-[0.16em] text-subtle">OSAZENÉ SOUČÁSTI</p>
+                    <div className="grid grid-cols-1 gap-1.5 sm:grid-cols-3">
+                      {(["barrel", "magazine", "core"] as const).map((slot) => {
+                        const installed = ownedArmoryComponents[slot];
+                        const slotName = slot === "barrel" ? "Hlaveň" : slot === "magazine" ? "Zásobník" : "Jádro";
+                        return (
+                          <div key={slot} className="flex min-w-0 items-center gap-2 rounded-lg border border-border/70 bg-surface px-2 py-2">
+                            <span className="flex size-8 shrink-0 items-center justify-center rounded-md border border-border bg-elevated text-ice">
+                              {slot === "barrel" ? <Crosshair className="size-4" /> : slot === "magazine" ? <CircleDot className="size-4" /> : <Zap className="size-4" />}
+                            </span>
+                            <span className="min-w-0">
+                              <span className="block text-[10px] text-subtle">{slotName}</span>
+                              <span className="block truncate text-xs font-medium text-fg">{installed ? componentDefinition(installed.id).name : "Neosazeno"}</span>
+                              {installed ? <span className="font-mono text-[10px] text-ice">STUPEŇ {installed.rank}/3</span> : null}
+                            </span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                  <div className="mt-3 flex flex-col gap-2 sm:flex-row">
+                    <Button
+                      variant={character.starterArchetype === ownedArmoryWeapon ? "secondary" : "primary"}
+                      size="lg"
+                      className="w-full sm:flex-1"
+                      disabled={character.starterArchetype === ownedArmoryWeapon}
+                      onClick={() => onStarter(ownedArmoryWeapon)}
+                      icon={character.starterArchetype === ownedArmoryWeapon ? <Check className="size-4" /> : <Swords className="size-4" />}
+                    >
+                      {character.starterArchetype === ownedArmoryWeapon ? "Nasazena pro nový běh" : "Nasadit pro nový běh"}
+                    </Button>
+                  </div>
+                </div>
+              </>
+            ) : (
+              <div className="mt-3 rounded-xl border border-dashed border-border bg-elevated px-4 py-6 text-center">
+                <WeaponIcon archetype="pistol" className="mx-auto size-8 text-subtle" />
+                <p className="mt-2 text-sm font-medium text-fg">Zbrojnice je zatím prázdná</p>
+                <p className="mt-1 text-xs text-muted">Vyrob první zbraň v Kovárně. Fragmenty získáš z nepřátel a bossů.</p>
+              </div>
+            )}
+          </section>
+        ) : null}
         {mode === "kovarna" ? (
           <div className="grid grid-cols-2 gap-1 rounded-xl border border-border bg-surface p-1" role="group" aria-label="Režim kovárny">
             {([

@@ -341,3 +341,12 @@
 - Made weapon selection grids responsive for phone, tablet, and desktop widths in crafting and upgrades.
 - Increased spacing and touch target sizing for forge weapon and component slot selection.
 - No crafting, material, upgrade, or loadout mechanics changed.
+
+
+## [Unreleased] – Vlastní zbrojnice na stránce Postava
+
+- Přidán přehled všech vyrobených zbraní jako responzivní mřížka s jasným výběrem a označením právě nasazené startovní zbraně.
+- Detail vybrané zbraně zobrazuje skutečný archetyp, element, vypočtené DMG/DPS/RPM, kapacitu zásobníku, přebití a kritickou šanci.
+- Detail ukazuje stav všech tří slotů a konkrétní osazené komponenty včetně jejich ranku.
+- Nasazení startovní zbraně je dostupné přímo z detailu; prázdná zbrojnice má vysvětlující stav a další krok.
+- Statistiky detailu se počítají přes existující preview komponent a DPS výpočet; žádné recepty, ceny, save formát ani bojová pravidla se nemění.
