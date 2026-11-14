@@ -37,6 +37,8 @@ Závislosti tečou jedním směrem: UI → vstup/snapshot → simulace; renderer
 ## 3. Renderovací smlouva
 
 - `renderRun(ctx, run, width, height)` je čistý prezentační průchod: čte `Run`, nemění jej.
+- Top-down kamera je vlastněna modulem `src/game/camera.ts`; follow používá frame-rate independent exponential damping, kamerový střed se clampuje podle rozměrů viewportu/zoomu a místnostního bounds. Teleport hráče při změně místnosti/sektoru musí atomicky snapnout kameru.
+- Camera shake je čistě kosmetický signál a nesmí spotřebovávat combat RNG ani ovlivnit loot/spawn/boj.
 - Veškeré transformace se skládají v jednom jasně vymezeném bloku; world-space a screen-space prvky jsou oddělené.
 - Vstupní rozměry, DPR, zoom, kamera, pozice hráče a entity se před vykreslením kontrolují na konečnost a rozumné meze.
 - Canvas kontext se získá jednou na instanci. Události `contextlost` a `contextrestored` se sledují; ztráta kontextu nesmí být tichá.

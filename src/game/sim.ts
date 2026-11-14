@@ -8,6 +8,7 @@ import {
   type PassiveDef,
 } from "./abilities";
 import { sfxPlay, musicStop, setMusicMode } from "./audio";
+import { snapCamera, updateFollowCamera } from "./camera";
 import { generateRoom, spawnEdge, type Obstacle, type RoomPlan, type RoomSpec, type Wave } from "./dungeon";
 import type { Actions } from "./input";
 import type { RarityWeights } from "./rarity-settings";
@@ -912,6 +913,7 @@ export class Run {
     this.room = generateRoom(this.roomRng, this.roomIndex, this.roomPlans[this.roomIndex] ?? undefined, this.level);
     this.player.x = ROOM_W / 2;
     this.player.y = ROOM_H / 2;
+    this.resetCameraToPlayer();
     this.player.invuln = 1.0;
     this.waveI = 0;
     this.waveT = 0;
@@ -1286,6 +1288,7 @@ export class Run {
     this.room = generateRoom(this.roomRng, 0, this.roomPlans[0] ?? undefined, this.level);
     this.player.x = ROOM_W / 2;
     this.player.y = ROOM_H / 2;
+    this.resetCameraToPlayer();
     this.player.invuln = 1.5;
     this.waveI = 0;
     this.waveT = 0;
@@ -2827,23 +2830,47 @@ export class Run {
     }
   }
 
+  private cameraViewport() {
+    return { width: this.viewW, height: this.viewH, zoom: this.zoom };
+  }
+
+  /** Room/sector transitions teleport the player; camera must transition atomically too. */
+  private resetCameraToPlayer() {
+    const position = snapCamera(this.player, this.cameraViewport());
+    this.cam.x = position.x;
+    this.cam.y = position.y;
+    this.cam.trauma = 0;
+    this.shakeX = 0;
+    this.shakeY = 0;
+  }
+
   private updateCamera(dt: number) {
-    const look = 70;
-    const tx = this.player.x + Math.cos(this.player.aim) * look * 0.35;
-    const ty = this.player.y + Math.sin(this.player.aim) * look * 0.35;
-    const k = 1 - Math.exp(-7 * dt);
-    this.cam.x += (tx - this.cam.x) * k;
-    this.cam.y += (ty - this.cam.y) * k;
-    this.cam.trauma = Math.max(0, this.cam.trauma - dt * 1.8);
+    const lookAhead = 24;
+    const lookX = Math.cos(this.player.aim) * lookAhead;
+    const lookY = Math.sin(this.player.aim) * lookAhead;
+    const position = updateFollowCamera(
+      this.cam,
+      this.player,
+      this.cameraViewport(),
+      dt,
+      { lookAheadX: lookX, lookAheadY: lookY, followSpeed: 9 },
+    );
+    this.cam.x = position.x;
+    this.cam.y = position.y;
+    this.cam.trauma = Math.max(0, this.cam.trauma - Math.max(0, dt) * 1.8);
+
+    // Cosmetic camera shake must never consume combat RNG or alter gameplay outcomes.
     const shake = this.cam.trauma * this.cam.trauma;
-    this.shakeX = (this.combatRng() * 2 - 1) * 14 * shake;
-    this.shakeY = (this.combatRng() * 2 - 1) * 14 * shake;
+    const phase = this.time * 47;
+    this.shakeX = Math.sin(phase * 1.31) * 14 * shake;
+    this.shakeY = Math.cos(phase * 1.73) * 14 * shake;
   }
 
   screenToWorld(sx: number, sy: number): { x: number; y: number } {
+    const zoom = Number.isFinite(this.zoom) && this.zoom > 0 ? this.zoom : 1;
     return {
-      x: (sx - this.viewW / 2 - this.shakeX) / this.zoom + this.cam.x,
-      y: (sy - this.viewH / 2 - this.shakeY) / this.zoom + this.cam.y,
+      x: (sx - this.viewW / 2 - this.shakeX) / zoom + this.cam.x,
+      y: (sy - this.viewH / 2 - this.shakeY) / zoom + this.cam.y,
     };
   }
 

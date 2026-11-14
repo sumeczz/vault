@@ -283,3 +283,11 @@
 - Canvas stabilita povýšena na P0; do jejího ověření se pozastavuje rozšiřování obsahu.
 - Zapsán audit: typecheck PASS, 117 herních testů PASS, 55 testů app-data/auth PASS, produkční build PASS; lint FAIL (8 chyb, 11 varování), browser/soak QA neověřeno.
 - Roadmapa a stav hry aktualizovány podle skutečně ověřeného stavu.
+
+## 2026-11-14 — Top-down kamera
+
+- Přidán samostatný `src/game/camera.ts`: frame-rate independent follow, clamp viditelné oblasti na hranice arény, bezpečné zacházení s neplatnými hodnotami a centrování při viewportu větším než místnost.
+- Přechod do další místnosti (včetně elitní 6.) a dalšího sektoru nyní atomicky resetuje pozici kamery na hráče a ruší starý screen shake.
+- Kamera má malý look-ahead podle směru míření; shake je deterministický kosmetický signál a neodebírá hodnoty z combat RNG.
+- Přidány tři regresní testy: bounds, smoothing/NaN a přechody do šesté místnosti.
+- Ověřeno: typecheck PASS, 120/120 herních testů PASS, 55/55 app-data/auth testů PASS, ESLint změněných souborů PASS, produkční build PASS. Browser render smoke je v ověřování; 15min soak test zůstává otevřený.

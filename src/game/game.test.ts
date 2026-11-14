@@ -41,6 +41,7 @@ import {
 import { mulberry32 } from "./rng.ts";
 import { generateRoom } from "./dungeon.ts";
 import { Run, WAVE_BREAK } from "./sim.ts";
+import { clampCamera, snapCamera, updateFollowCamera } from "./camera.ts";
 import { ACHIEVEMENTS, earnedAchievements, loadAchievements, profileStats, unlockAchievements } from "./achievements.ts";
 import { GLOSSARY, glossaryDef } from "./glossary.ts";
 import {
@@ -840,6 +841,42 @@ describe("pevná pravidla §§6–10", () => {
     assert.equal(SECTOR_SIZE, 10);
     assert.deepEqual(ELITE_POS, [2, 5]);
     assert.equal(BOSS_POS, 9);
+  });
+});
+
+describe("top-down camera", () => {
+  const viewport = { width: 800, height: 600, zoom: 1 };
+
+  it("clamps camera to room bounds and centers oversized viewports", () => {
+    assert.deepEqual(clampCamera({ x: -500, y: 9000 }, viewport), { x: 436, y: 424 });
+    assert.deepEqual(snapCamera({ x: 560, y: 380 }, viewport), { x: 560, y: 380 });
+    assert.deepEqual(
+      clampCamera({ x: 0, y: 0 }, { width: 1600, height: 1000, zoom: 1 }),
+      { x: 560, y: 380 },
+    );
+  });
+
+  it("follows smoothly without overshoot and ignores invalid values", () => {
+    const start = { x: 436, y: 336 };
+    const next = updateFollowCamera(start, { x: 560, y: 380 }, viewport, 1 / 60);
+    assert.ok(next.x > start.x && next.x < 560);
+    assert.ok(next.y > start.y && next.y < 380);
+    const invalid = updateFollowCamera({ x: Number.NaN, y: Number.POSITIVE_INFINITY }, { x: 560, y: 380 }, viewport, 0.016);
+    assert.ok(Number.isFinite(invalid.x) && Number.isFinite(invalid.y));
+  });
+
+  it("snaps to the player on every room transition including room six", () => {
+    const run = new Run("CAMERA-ROOM-TRANSITIONS");
+    run.update(0.016, NEUTRAL_ACTIONS, 800, 600);
+    for (let room = 1; room <= 5; room++) {
+      run.player.x = 100;
+      run.player.y = 100;
+      run.nextRoom();
+      assert.equal(run.roomIndex, room);
+      assert.deepEqual({ x: run.cam.x, y: run.cam.y }, { x: 560, y: 380 });
+      assert.equal(run.shakeX, 0);
+      assert.equal(run.shakeY, 0);
+    }
   });
 });
 

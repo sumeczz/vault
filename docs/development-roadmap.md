@@ -22,6 +22,8 @@ jako budoucí úkoly. Propojení herních systémů je popsáno v
 
 ## P0 — stabilizace před dalším obsahem
 
+**Průběžná oprava 14. 11. 2026:** přidán samostatný top-down follow camera modul. Kamera nyní clampuje viditelnou oblast k aréně, plynule sleduje hráče s malým look-ahead podle míření a při přechodu do další místnosti/sektoru se okamžitě synchronizuje s novou pozicí hráče. Camera shake již nespotřebovává combat RNG. Automatické testy pokrývají hranice viewportu, smoothing, neplatné hodnoty a přechody až do šesté místnosti. Tato oprava sama o sobě neuzavírá P0 browser/soak QA.
+
 Tato etapa má přednost před všemi produktovými rozšířeními. Do jejího dokončení se nepřidávají nové schopnosti, zbraně, efekty ani progrese. Závazná kritéria jsou v [engineering-standards.md](./engineering-standards.md).
 
 - Reprodukovat zmizení herního světa; přidat diagnostiku Canvas context lost/restored, heartbeat snímků, rozměrů/DPR, kamery/zoomu a neplatných souřadnic.

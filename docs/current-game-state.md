@@ -155,11 +155,12 @@ dialogy, low-HP vignette, pulzující BOSS odznak a banner odpočtu vlny. Animac
 - `src/game/characters.ts`: verze 1 datového formátu postav, normalizace/migrace legacy XP, XP křivka, talenty, respec a materiálová zásilka.
 - `src/game/character-armory.ts` + `src/game/weapon-components.ts`: dropy, recepty, výběr craftovaného startu, ceny a aplikace trvalých komponent.
 - `src/game/codex.ts`: jednorázová sbírka/CodexBonus i oddělený žurnál znalostí nepřátel/prestiže.
-- `src/game/render.ts`: canvas vykreslování herního světa; DOM ikony jsou centralizované v `src/game/ui-icons.tsx`.
+- `src/game/camera.ts`: samostatný top-down follow camera systém s clampem na hranice místnosti, plynulým sledováním, aim look-ahead a okamžitým snapem při přechodu místnosti/sektoru.
+- `src/game/render.ts`: canvas vykreslování herního světa; používá world-to-screen transformaci z `Run.cam`; DOM ikony jsou centralizované v `src/game/ui-icons.tsx`.
 
 ## Spuštění a ověření
 
-Po instalaci závislostí spusť `npm run dev`; aplikace je na `http://localhost:8080`. Projekt cílí na Node.js 22. Audit 14. 11. 2026: `npm run typecheck` PASS, herní testy 117/117 PASS, app-data/auth testy 55/55 PASS, `npm run build` PASS. `npm run lint` FAIL (8 chyb, 11 varování); browser smoke a dlouhý běh nejsou ověřeny. Release je blokován do odstranění nálezů a vyřešení nestability Canvas rendereru. Viz [engineering-standards.md](./engineering-standards.md).
+Po instalaci závislostí spusť `npm run dev`; aplikace je na `http://localhost:8080`. Projekt cílí na Node.js 22. Audit 14. 11. 2026: `npm run typecheck` PASS, herní testy 120/120 PASS, app-data/auth testy 55/55 PASS, `npm run build` PASS. ESLint změněných souborů PASS; úplný `npm run lint` má dosud evidované chyby mimo tuto změnu. Desktop/mobile browser render smoke prošel bez konzolových chyb, ale kvůli novému lokálnímu profilu skončil na přihlašovací obrazovce a neověřil herní Canvas. 15min soak test zůstává otevřený. Viz [engineering-standards.md](./engineering-standards.md).
 
 ## Známá omezení
 
