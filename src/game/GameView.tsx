@@ -900,6 +900,7 @@ export function GameView() {
             onComponent={(archetype, componentId) => reportCharacterAction(
               upgradeCharacterWeaponComponent(archetype, componentId, unlocksForLevel(loadSave().bestLevel).forge),
             )}
+            onOpenForge={() => setScreen("kovarna")}
             onStarter={(archetype) => {
               reportCharacterAction(selectCraftedStarter(archetype));
               if (archetype === null) {
@@ -1119,6 +1120,7 @@ function PostavaScreen({
   onCraft,
   onComponent,
   onStarter,
+  onOpenForge,
 }: {
   mode: "postava" | "kovarna";
   save: SaveData;
@@ -1131,6 +1133,7 @@ function PostavaScreen({
   onCraft: (archetype: ArchetypeId) => void;
   onComponent: (archetype: ArchetypeId, componentId: WeaponComponentId) => void;
   onStarter: (archetype: ArchetypeId | null) => void;
+  onOpenForge: () => void;
 }) {
   const badges = loadBadges();
   const respecCost = talentRespecCost(character.respecCount);
@@ -1141,6 +1144,27 @@ function PostavaScreen({
   const [selectedArmoryWeapon, setSelectedArmoryWeapon] = useState<ArchetypeId>(
     character.starterArchetype ?? character.craftedWeapons[0] ?? "pistol",
   );
+  const [armoryFilter, setArmoryFilter] = useState<"all" | "equipped" | "modified">("all");
+  const [armorySort, setArmorySort] = useState<"name" | "damage" | "dps">("name");
+  const [compareArmoryWeapon, setCompareArmoryWeapon] = useState<ArchetypeId | "">("");
+  const armoryDefinitions = character.craftedWeapons.map((archetype) => {
+    const definition = weaponDefs.find((item) => item.archetype === archetype);
+    return definition ? {
+      archetype,
+      definition,
+      preview: previewComponentWeapon(definition, character.weaponComponents[archetype]),
+    } : null;
+  }).filter((item): item is NonNullable<typeof item> => item !== null);
+  const visibleArmoryWeapons = armoryDefinitions
+    .filter((item) => armoryFilter === "all"
+      || (armoryFilter === "equipped" && character.starterArchetype === item.archetype)
+      || (armoryFilter === "modified" && Object.keys(character.weaponComponents[item.archetype] ?? {}).length > 0))
+    .sort((a, b) => armorySort === "name"
+      ? ARCHETYPE_LABEL[a.archetype].name.localeCompare(ARCHETYPE_LABEL[b.archetype].name, "cs")
+      : armorySort === "damage"
+        ? b.preview.stats.damage - a.preview.stats.damage
+        : dpsEstimate(b.preview) - dpsEstimate(a.preview));
+  const compareArmory = armoryDefinitions.find((item) => item.archetype === compareArmoryWeapon);
   const ownedArmoryWeapon = character.craftedWeapons.includes(selectedArmoryWeapon)
     ? selectedArmoryWeapon
     : character.craftedWeapons[0];
@@ -1241,8 +1265,24 @@ function PostavaScreen({
             </div>
             {character.craftedWeapons.length > 0 && ownedArmoryWeapon && ownedArmoryPreview ? (
               <>
+                <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
+                  <label className="text-[11px] text-subtle">ZOBRAZIT
+                    <select value={armoryFilter} onChange={(event) => setArmoryFilter(event.target.value as typeof armoryFilter)} className="mt-1 min-h-11 w-full rounded-lg border border-border bg-elevated px-3 text-xs text-fg">
+                      <option value="all">Všechny zbraně</option>
+                      <option value="equipped">Nasazená zbraň</option>
+                      <option value="modified">Zbraně s úpravami</option>
+                    </select>
+                  </label>
+                  <label className="text-[11px] text-subtle">ŘADIT PODLE
+                    <select value={armorySort} onChange={(event) => setArmorySort(event.target.value as typeof armorySort)} className="mt-1 min-h-11 w-full rounded-lg border border-border bg-elevated px-3 text-xs text-fg">
+                      <option value="name">Názvu</option>
+                      <option value="damage">Poškození (DMG)</option>
+                      <option value="dps">Poškození za sekundu (DPS)</option>
+                    </select>
+                  </label>
+                </div>
                 <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3" aria-label="Vlastněné zbraně">
-                  {character.craftedWeapons.map((archetype) => {
+                  {visibleArmoryWeapons.map(({ archetype }) => {
                     const active = character.starterArchetype === archetype;
                     const selected = ownedArmoryWeapon === archetype;
                     const loadout = character.weaponComponents[archetype] ?? {};
@@ -1266,7 +1306,36 @@ function PostavaScreen({
                   })}
                 </div>
                 <div className="mt-3 rounded-xl border border-border bg-elevated p-3">
-                  <div className="flex items-start gap-3">
+                  <label className="block text-[11px] text-subtle">POROVNAT S JINOU ZBRANÍ
+                    <select value={compareArmoryWeapon} onChange={(event) => setCompareArmoryWeapon(event.target.value as ArchetypeId | "")} className="mt-1 min-h-11 w-full rounded-lg border border-border bg-surface px-3 text-xs text-fg">
+                      <option value="">Bez porovnání</option>
+                      {armoryDefinitions.filter((item) => item.archetype !== ownedArmoryWeapon).map((item) => (
+                        <option key={item.archetype} value={item.archetype}>{ARCHETYPE_LABEL[item.archetype].name}</option>
+                      ))}
+                    </select>
+                  </label>
+                  {compareArmory ? (
+                    <div className="mt-3 overflow-x-auto rounded-lg border border-border">
+                      <div className="grid min-w-[280px] grid-cols-3 bg-surface px-2 py-2 text-center text-[10px] font-mono text-subtle">
+                        <span>STATISTIKA</span><span>{ARCHETYPE_LABEL[ownedArmoryWeapon].name}</span><span>{ARCHETYPE_LABEL[compareArmory.archetype].name}</span>
+                      </div>
+                      {([
+                        ["DMG", ownedArmoryPreview.stats.damage, compareArmory.preview.stats.damage],
+                        ["DPS", dpsEstimate(ownedArmoryPreview), dpsEstimate(compareArmory.preview)],
+                        ["RPM", ownedArmoryPreview.stats.rpm, compareArmory.preview.stats.rpm],
+                        ["ZÁSOBNÍK", ownedArmoryPreview.stats.magSize, compareArmory.preview.stats.magSize],
+                        ["PŘEBITÍ", ownedArmoryPreview.stats.reload, compareArmory.preview.stats.reload],
+                        ["KRIT", ownedArmoryPreview.stats.critChance * 100, compareArmory.preview.stats.critChance * 100],
+                      ] as const).map(([label, left, right]) => (
+                        <div key={label} className="grid min-w-[280px] grid-cols-3 border-t border-border/70 px-2 py-2 text-center text-xs">
+                          <span className="text-subtle">{label}</span>
+                          <span className={left >= right ? "font-mono tabular-nums text-state-success" : "font-mono tabular-nums text-fg"}>{left.toFixed(1)}</span>
+                          <span className={right >= left ? "font-mono tabular-nums text-state-success" : "font-mono tabular-nums text-fg"}>{right.toFixed(1)}</span>
+                        </div>
+                      ))}
+                    </div>
+                  ) : null}
+                  <div className="mt-3 flex items-start gap-3">
                     <div className="flex size-14 shrink-0 items-center justify-center rounded-xl border border-border bg-surface">
                       <WeaponIcon archetype={ownedArmoryWeapon} className="size-9 text-ice" />
                     </div>
@@ -1313,6 +1382,9 @@ function PostavaScreen({
                     </div>
                   </div>
                   <div className="mt-3 flex flex-col gap-2 sm:flex-row">
+                    <Button variant="secondary" size="lg" className="w-full sm:flex-1" onClick={onOpenForge}>
+                      <Wrench className="mr-1.5 size-4" /> Otevřít úpravy v Kovárně
+                    </Button>
                     <Button
                       variant={character.starterArchetype === ownedArmoryWeapon ? "secondary" : "primary"}
                       size="lg"
@@ -1360,6 +1432,52 @@ function PostavaScreen({
               </button>
             ))}
           </div>
+        ) : null}
+        {mode === "postava" ? (
+        <section className="rounded-2xl border border-border bg-surface p-3">
+          <div className="flex items-center justify-between gap-2">
+            <h2 className="font-mono text-[11px] tracking-[0.2em] text-subtle">SKLAD MATERIÁLŮ</h2>
+            <Badge tone="neutral">{fragmentEntries.length} typů fragmentů</Badge>
+          </div>
+          <div className="mt-3 grid grid-cols-3 gap-2">
+            {[
+              { id: "scrap", label: "Šrot", amount: character.materials.scrap, icon: "scrap" as const },
+              { id: "alloy", label: "Slitiny", amount: character.materials.alloys, icon: "alloy" as const },
+              { id: "core", label: "Jádra", amount: character.materials.cores, icon: "core" as const },
+            ].map(({ id, label, amount, icon }) => (
+              <div key={id} className="flex min-w-0 flex-col items-center gap-1 rounded-xl border border-border bg-elevated p-3 text-center">
+                <MaterialIcon material={icon} className="size-5 text-ice" />
+                <span className="text-[10px] text-subtle">{label}</span>
+                <strong className="font-mono text-lg tabular-nums text-fg">{amount.toLocaleString("cs-CZ")}</strong>
+              </div>
+            ))}
+          </div>
+          {Object.entries(character.materials.catalysts).some(([, amount]) => (amount ?? 0) > 0) ? (
+            <div className="mt-3 border-t border-border pt-3">
+              <p className="mb-2 text-[10px] font-mono tracking-wider text-subtle">ELEMENTÁRNÍ KATALYZÁTORY</p>
+              <div className="grid grid-cols-3 gap-2 sm:grid-cols-6">
+                {Object.entries(character.materials.catalysts).filter(([, amount]) => (amount ?? 0) > 0).map(([element, amount]) => (
+                  <div key={element} className="flex items-center justify-center gap-1 rounded-lg border border-border bg-elevated px-2 py-2 text-xs">
+                    <MaterialIcon material={element as Element} className="size-4 text-ice" /><span className="font-mono tabular-nums">{amount}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : null}
+          <div className="mt-3 border-t border-border pt-3">
+            <p className="mb-2 text-[10px] font-mono tracking-wider text-subtle">FRAGMENTY ZBRANÍ</p>
+            {fragmentEntries.length ? (
+              <div className="grid grid-cols-3 gap-2 sm:grid-cols-5">
+                {fragmentEntries.map(([archetype, amount]) => (
+                  <div key={archetype} className="flex min-w-0 items-center gap-2 rounded-lg border border-border bg-elevated p-2">
+                    <WeaponIcon archetype={archetype as ArchetypeId} className="size-5 shrink-0 text-ice" />
+                    <span className="min-w-0"><span className="block truncate text-[10px] text-subtle">{ARCHETYPE_LABEL[archetype as ArchetypeId].name}</span><strong className="font-mono text-xs text-fg">×{amount}</strong></span>
+                  </div>
+                ))}
+              </div>
+            ) : <p className="text-xs text-subtle">Fragmenty získáš z nepřátel, elit a bossů.</p>}
+          </div>
+        </section>
         ) : null}
         {mode === "postava" ? (
         <>

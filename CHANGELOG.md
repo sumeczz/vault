@@ -350,3 +350,13 @@
 - Detail ukazuje stav všech tří slotů a konkrétní osazené komponenty včetně jejich ranku.
 - Nasazení startovní zbraně je dostupné přímo z detailu; prázdná zbrojnice má vysvětlující stav a další krok.
 - Statistiky detailu se počítají přes existující preview komponent a DPS výpočet; žádné recepty, ceny, save formát ani bojová pravidla se nemění.
+
+
+## [Unreleased] – Inventář výbavy a sklad materiálů
+
+- Zbrojnice nyní nabízí filtrování vlastněných zbraní podle stavu nasazení a osazení komponentami.
+- Přidáno řazení zbraní podle názvu, základního poškození a vypočteného DPS.
+- Přidáno přímé porovnání dvou vlastněných zbraní včetně DMG, DPS, RPM, zásobníku, přebití a kritické šance.
+- Sklad materiálů je nově dostupný také na stránce Postava: šrot, slitiny, jádra, elementární katalyzátory a fragmenty zbraní.
+- Z detailu zbraně lze přejít přímo do Kovárny na výrobu a úpravy; nasazení zbraně zůstává dostupné v inventáři.
+- Změny používají existující data postavy a výpočty komponent, bez změny save formátu a ekonomických pravidel.

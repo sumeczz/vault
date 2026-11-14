@@ -76,3 +76,12 @@ Komponenty používají canonical tokeny definované v `src/styles.css`: backgro
 - Detail používá jednotnou statistickou mřížku DMG/DPS/RPM, zásobník/přebití/krit a samostatnou oblast tří slotů součástí.
 - Mobil zobrazuje výběr nad detailem v jednom sloupci; širší obrazovky rozšiřují mřížku bez změny informační hierarchie.
 - Nasazení používá sdílený Button a existující akci `onStarter`; data a herní mechaniky zůstávají beze změny.
+
+
+## Design system – část 8: inventář výbavy a sklad
+
+- Zbrojnice má ovládací řádek filtrů a řazení, přehled vlastněných položek a oddělený detail zvolené zbraně.
+- Porovnání zbraní používá tabulku se třemi sloupci a stejné statistické definice jako detail; lepší hodnoty jsou zvýrazněné, nikoliv přepsané do jiných jednotek.
+- Sklad materiálů na stránce Postava seskupuje základní suroviny, elementární katalyzátory a fragmenty zbraní.
+- Akce z inventáře vedou do Kovárny pro úpravy; nasazení startovní zbraně zůstává samostatnou akcí.
+- Ovládací prvky mají minimální výšku 44 px a na mobilu se skládají do jednoho sloupce.
