@@ -435,3 +435,178 @@
   .vb-ui-section-heading__eyebrow { color: var(--color-text-secondary); font: 600 10px/1.2 var(--font-sans); letter-spacing: .18em; text-transform: uppercase; }
   .vb-ui-section-heading__action { flex: 0 0 auto; }
 }
+
+/* ---------- Mobile combat HUD: gameplay gets the screen ---------- */
+@media (max-width: 640px) {
+  .vb-game .vb-hud-root {
+    padding: max(6px, env(safe-area-inset-top)) 7px max(6px, env(safe-area-inset-bottom));
+  }
+  .vb-game .vb-hud-top {
+    align-items: flex-start;
+    gap: 5px;
+  }
+  .vb-game .vb-hud-status {
+    flex: 0 1 48%;
+    width: 48%;
+    max-width: 48%;
+    padding: 6px;
+    border-color: rgba(168, 182, 197, .16);
+    border-radius: 10px;
+    background: rgba(8, 13, 19, .68);
+    box-shadow: none;
+    backdrop-filter: blur(5px);
+  }
+  .vb-game .vb-hud-status > div:first-child {
+    display: block;
+    margin: 0 0 5px;
+    font-size: 10px;
+    line-height: 1.2;
+  }
+  .vb-game .vb-hud-status > div:first-child > :not(:first-child),
+  .vb-game .vb-hud-status > div:nth-child(2),
+  .vb-game .vb-hud-status > div:nth-child(5),
+  .vb-game .vb-hud-status > div:nth-child(6) {
+    display: none;
+  }
+  .vb-game .vb-hud-status > div:first-child > :first-child {
+    display: inline;
+    padding: 0;
+    background: transparent;
+    font-size: 10px;
+    letter-spacing: .04em;
+  }
+  .vb-game .vb-hud-status > div:nth-child(3) {
+    height: 4px;
+    margin: 0;
+  }
+  .vb-game .vb-hud-status > div:nth-child(4) {
+    height: 3px;
+    margin: 4px 0 0;
+    border: 0;
+    box-shadow: none;
+  }
+  .vb-game .vb-hud-actions {
+    gap: 4px;
+  }
+  .vb-game .vb-hud-actions > button {
+    width: 34px;
+    height: 34px;
+    min-height: 34px;
+    border-radius: 50%;
+    border-color: rgba(168, 182, 197, .18);
+    background: rgba(8, 13, 19, .68);
+    box-shadow: none;
+  }
+  .vb-game .vb-hud-actions > button svg {
+    width: 16px;
+    height: 16px;
+  }
+  .vb-game .vb-hud-bottom {
+    display: none;
+  }
+  .vb-game .vb-toast-feed {
+    top: max(70px, calc(env(safe-area-inset-top) + 62px));
+    right: 50%;
+    bottom: auto;
+    width: max-content;
+    max-width: min(76vw, 280px);
+    transform: translateX(50%);
+    gap: 0;
+  }
+  .vb-game .vb-toast-feed > div {
+    padding: 7px 10px;
+    border-color: rgba(168, 182, 197, .2);
+    border-radius: 10px;
+    background: rgba(8, 13, 19, .82);
+    box-shadow: none;
+    backdrop-filter: blur(5px);
+  }
+  .vb-game .vb-toast-feed > div > div:first-child {
+    font-size: 11px;
+    line-height: 1.25;
+  }
+  .vb-game .vb-toast-feed > div > div:first-child svg {
+    width: 13px;
+    height: 13px;
+  }
+  .vb-game .vb-toast-feed > div > div:nth-child(2) {
+    font-size: 10px;
+    line-height: 1.2;
+  }
+  .vb-game .vb-touch-utility {
+    gap: 6px;
+  }
+  .vb-game .vb-touch-utility > button:first-child {
+    display: none;
+  }
+  .vb-game .vb-touch-utility > button {
+    width: 40px !important;
+    height: 40px !important;
+    min-height: 40px;
+    border-color: rgba(168, 182, 197, .22);
+    background: rgba(8, 13, 19, .58);
+    box-shadow: none;
+  }
+  .vb-game .vb-touch-utility > button svg {
+    width: 17px;
+    height: 17px;
+  }
+  .vb-game .vb-touch-layer > button[aria-label="Nastavení dotykového ovládání"] {
+    width: 34px;
+    height: 34px;
+    min-height: 34px;
+    border-radius: 50%;
+    background: rgba(8, 13, 19, .68);
+    box-shadow: none;
+  }
+  .vb-game .vb-touch-layer > button[aria-label="Držet pro střelbu"] {
+    box-shadow: 0 0 0 1px rgba(67, 191, 255, .12);
+  }
+  .vb-game .vb-touch-layer [aria-label="Joystick pohybu"] {
+    top: 48%;
+  }
+  .vb-game .vb-touch-layer [aria-label="Joystick míření"] {
+    top: 48%;
+  }
+  .vb-game .vb-game-wave,
+  .vb-game .vb-game-boss {
+    top: max(72px, calc(env(safe-area-inset-top) + 64px));
+  }
+}
+
+@media (max-width: 640px) {
+  .vb-game .vb-hud-status > div:nth-child(2) {
+    display: flex;
+    margin: 0;
+    font-size: 9px;
+    line-height: 1.2;
+  }
+  .vb-game .vb-hud-status > div:nth-child(2) > span:first-child {
+    font-size: 9px;
+  }
+  .vb-game .vb-hud-status > div:nth-child(2) > span:last-child {
+    font-size: 10px;
+  }
+  .vb-game .vb-game-wave,
+  .vb-game .vb-game-boss {
+    top: max(70px, calc(env(safe-area-inset-top) + 64px));
+  }
+  .vb-game .vb-game-wave > div { gap: 5px; }
+  .vb-game .vb-game-wave span,
+  .vb-game .vb-game-wave button {
+    min-height: 32px;
+    padding: 6px 10px;
+    font-size: 11px;
+  }
+  .vb-game .vb-game-boss > div { width: min(220px, 58vw); }
+  .vb-game .vb-game-boss > div > div:first-child { font-size: 9px; letter-spacing: .12em; }
+  .vb-game .vb-game-boss .h-2\.5 { height: 5px; }
+}
+
+@media (max-width: 640px) {
+  .vb-game .vb-hud-status > .vb-hud-weapon {
+    display: flex;
+    min-width: 0;
+    line-height: 1.2;
+  }
+}

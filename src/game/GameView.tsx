@@ -217,9 +217,9 @@ export function GameView() {
   function pushToasts(evs: GameEvent[]) {
     if (evs.length === 0) return;
     const fresh = evs.map((e) => ({ ...e, id: ++toastId.current }));
-    setToasts((t) => [...t, ...fresh].slice(-4));
+    setToasts((t) => [...t, ...fresh].slice(-1));
     for (const f of fresh) {
-      window.setTimeout(() => setToasts((t) => t.filter((x) => x.id !== f.id)), 4200);
+      window.setTimeout(() => setToasts((t) => t.filter((x) => x.id !== f.id)), 2400);
     }
   }
   const [save, setSave] = useState<SaveData>({
@@ -2705,7 +2705,7 @@ function Hud({ hud, activePanel, onPause, onBattle, onStats, onCharacter, onStar
         />
       ) : null}
       {hud.waveAwaiting ? (
-        <div className="pointer-events-none absolute inset-x-0 top-20 flex justify-center">
+        <div className="vb-game-wave pointer-events-none absolute inset-x-0 top-20 flex justify-center">
           <div className="flex flex-col items-center gap-2">
             <span className="rounded-full border border-ice/50 bg-surface/90 px-4 py-2 font-mono text-sm tabular-nums text-ice shadow-lg">
               Vlna {hud.wave}/{hud.waves} — připraveno
@@ -2721,14 +2721,14 @@ function Hud({ hud, activePanel, onPause, onBattle, onStats, onCharacter, onStar
           </div>
         </div>
       ) : hud.waveIn > 0 ? (
-        <div className="pointer-events-none absolute inset-x-0 top-20 flex justify-center">
+        <div className="vb-game-wave pointer-events-none absolute inset-x-0 top-20 flex justify-center">
           <span className="rounded-full border border-ice/50 bg-surface/90 px-4 py-2 font-mono text-sm tabular-nums text-ice shadow-lg">
             Vlna {hud.wave}/{hud.waves} za {hud.waveIn.toFixed(1)}s
           </span>
         </div>
       ) : null}
       {hud.bossInfo ? (
-        <div className="pointer-events-none absolute inset-x-0 top-32 flex justify-center sm:top-28">
+        <div className="vb-game-boss pointer-events-none absolute inset-x-0 top-32 flex justify-center sm:top-28">
           <div className="w-64 max-w-[70vw]">
             <div className="mb-1 flex items-center justify-between gap-2 font-mono text-[11px] tracking-[0.25em] text-danger">
               <span>BOSS · {BOSS_PHASE_NAMES[(hud.bossInfo.phase || 1) as BossPhase].toUpperCase()}</span>
@@ -2743,9 +2743,9 @@ function Hud({ hud, activePanel, onPause, onBattle, onStats, onCharacter, onStar
           </div>
         </div>
       ) : null}
-      <div className="pointer-events-none absolute inset-0 flex flex-col justify-between p-2.5 pt-[max(10px,env(safe-area-inset-top))] sm:p-3">
-      <div className="flex items-start justify-between gap-2">
-        <div className="min-w-0 flex-1 rounded-xl border border-border/60 bg-bg/65 p-2 shadow-lg backdrop-blur-sm">
+      <div className="vb-hud-root pointer-events-none absolute inset-0 flex flex-col justify-between p-2.5 pt-[max(10px,env(safe-area-inset-top))] sm:p-3">
+      <div className="vb-hud-top flex items-start justify-between gap-2">
+        <div className="vb-hud-status min-w-0 flex-1 rounded-xl border border-border/60 bg-bg/65 p-2 shadow-lg backdrop-blur-sm">
           <div className="mb-1.5 flex flex-wrap items-center gap-2 text-xs tracking-wide text-muted">
             <span className="rounded-md bg-surface/80 px-2 py-0.5 font-mono tabular-nums">
               SEKTOR {hud.sector} · {hud.room}/{hud.rooms} · LVL {hud.level}
@@ -2839,8 +2839,12 @@ function Hud({ hud, activePanel, onPause, onBattle, onStats, onCharacter, onStar
               ))}
             </div>
           ) : null}
+          <div className="vb-hud-weapon mt-1 hidden items-center justify-between gap-2 text-[10px] text-muted">
+            <span className="min-w-0 truncate">{hud.weapons[hud.slot]?.name ?? "Zbraň"}</span>
+            <span className="shrink-0 font-mono tabular-nums">{hud.reloading ? "Nabíjení" : `${hud.mag}/${hud.weapons[hud.slot]?.stats.magSize ?? 0}`}</span>
+          </div>
         </div>
-        <div className="flex shrink-0 gap-1 sm:gap-2">
+        <div className="vb-hud-actions flex shrink-0 gap-1 sm:gap-2">
           <button
             type="button"
             onClick={onBattle}
@@ -2878,7 +2882,7 @@ function Hud({ hud, activePanel, onPause, onBattle, onStats, onCharacter, onStar
           </button>
         </div>
       </div>
-      <div className="pointer-events-none mb-28 flex items-end justify-between gap-1.5 sm:mb-4">
+      <div className="vb-hud-bottom pointer-events-none mb-28 flex items-end justify-between gap-1.5 sm:mb-4">
         <WeaponChip
           weapon={hud.weapons[0]}
           active={hud.slot === 0}
@@ -2954,8 +2958,8 @@ function Tip({ title, body, side = "bottom", children }: { title: string; body: 
 
 function ToastFeed({ toasts }: { toasts: { id: number; kind: GameEvent["kind"]; text: string; sub?: string }[] }) {  if (toasts.length === 0) return null;
   return (
-    <div className="pointer-events-none absolute right-3 bottom-52 flex w-64 max-w-[70vw] flex-col gap-2 sm:bottom-40">
-      {toasts.map((t) => (
+    <div className="vb-toast-feed pointer-events-none absolute right-3 bottom-52 flex w-64 max-w-[70vw] flex-col gap-2 sm:bottom-40">
+      {toasts.slice(-1).map((t) => (
         <div key={t.id} className="vb-enter rounded-xl border border-border bg-surface/95 p-2.5 shadow-lg">
           <div className="flex items-center gap-1.5 text-sm font-medium">
             {t.kind === "challenge" ? (
@@ -4357,15 +4361,15 @@ type TouchMode = "assist" | "manual";
 
 // Touch controls are fixed in CSS pixels; viewport size never scales the controls.
 const TOUCH_CONTROL_DIMENSIONS = {
-  move: 126,
-  aim: 116,
-  fire: 76,
-  utility: 48,
-  moveInset: 92,
-  moveBottom: 96,
-  aimInset: 150,
-  aimBottom: 120,
-  fireBottom: 86,
+  move: 104,
+  aim: 96,
+  fire: 64,
+  utility: 42,
+  moveInset: 70,
+  moveBottom: 72,
+  aimInset: 104,
+  aimBottom: 88,
+  fireBottom: 68,
 } as const;
 
 function TouchLayer({
@@ -4392,38 +4396,13 @@ function TouchLayer({
     ? "border-2 border-accent-blue bg-accent-blue/25"
     : "border-2 border-rarity-uncommon bg-rarity-uncommon/20";
   return (
-    <div className="pointer-events-none absolute inset-0 select-none">
+    <div className="vb-touch-layer pointer-events-none absolute inset-0 select-none">
       <TouchJoystick settings={settings} />
       {mode === "manual" ? <TouchAimJoystick settings={settings} /> : null}
-      <div className={`pointer-events-auto absolute ${fireSideClass} top-20 flex rounded-xl border border-border bg-surface/90 p-1 shadow-lg`} style={{ touchAction: "none", opacity }} aria-label="Režim střelby">
-        <button
-          type="button"
-          onClick={() => onMode("assist")}
-          aria-pressed={mode === "assist"}
-          className={`min-h-10 rounded-lg px-2.5 text-[11px] font-semibold ${mode === "assist" ? "bg-accent-blue text-white" : "text-muted"}`}
-        >
-          AUTO AIM
-        </button>
-        <button
-          type="button"
-          onClick={() => onMode("manual")}
-          aria-pressed={mode === "manual"}
-          className={`min-h-10 rounded-lg px-2.5 text-[11px] font-semibold ${mode === "manual" ? "bg-accent-blue text-white" : "text-muted"}`}
-        >
-          MANUAL
-        </button>
-        <span
-          title="VIP Combat Assist bude dostupný po napojení ověřování VIP oprávnění."
-          aria-label="VIP Combat Assist je zatím zamčený"
-          className="flex min-h-10 items-center gap-1 rounded-lg px-2 text-[11px] font-semibold text-subtle opacity-60"
-        >
-          <Lock className="size-3" /> VIP
-        </span>
-      </div>
       <button
         type="button"
         onClick={() => setSettingsOpen((open) => !open)}
-        className={`pointer-events-auto absolute ${fireSideClass} top-[132px] flex size-10 items-center justify-center rounded-xl border border-border bg-surface/90 text-fg shadow-lg`}
+        className="pointer-events-auto absolute left-3 top-[68px] flex size-9 items-center justify-center rounded-xl border border-border bg-surface/90 text-fg shadow-lg"
         style={{ touchAction: "none", opacity }}
         aria-label="Nastavení dotykového ovládání"
         aria-expanded={settingsOpen}
@@ -4431,11 +4410,15 @@ function TouchLayer({
         <SlidersHorizontal className="size-4" />
       </button>
       {settingsOpen ? (
-        <div className={`pointer-events-auto absolute ${fireSideClass} top-[178px] z-30 w-[min(248px,calc(100vw-24px))] rounded-xl border border-border bg-surface/95 p-3 shadow-xl backdrop-blur`} style={{ touchAction: "pan-y" }}>
-          <div className="mb-3 text-xs font-semibold text-fg">Dotykové ovládání</div>
+        <div className="pointer-events-auto absolute left-3 top-[112px] z-30 w-[min(248px,calc(100vw-24px))] rounded-xl border border-border bg-surface/95 p-3 shadow-xl backdrop-blur" style={{ touchAction: "pan-y" }}>
+          <div className="mb-2 text-xs font-semibold text-fg">Ovládání</div>
+          <div className="mb-3 grid grid-cols-2 gap-1">
+            <button type="button" onClick={() => onMode("assist")} aria-pressed={mode === "assist"} className={`min-h-9 rounded-lg border px-2 text-[11px] font-semibold ${mode === "assist" ? "border-accent-blue bg-accent-blue/15 text-fg" : "border-border text-muted"}`}>Auto aim</button>
+            <button type="button" onClick={() => onMode("manual")} aria-pressed={mode === "manual"} className={`min-h-9 rounded-lg border px-2 text-[11px] font-semibold ${mode === "manual" ? "border-accent-blue bg-accent-blue/15 text-fg" : "border-border text-muted"}`}>Manuální míření</button>
+          </div>
           <div className="mb-3 rounded-lg border border-border bg-surface/60 p-2">
             <div className="text-[11px] font-semibold text-fg">Pevná velikost ovládání</div>
-            <div className="mt-1 text-[10px] leading-relaxed text-muted">Pohyb 126 px · míření 116 px · střelba 76 px · tlačítka 48 px</div>
+            <div className="mt-1 text-[10px] leading-relaxed text-muted">Pohyb 104 px · míření 96 px · střelba 64 px · tlačítka 42 px</div>
           </div>
           <div className="mb-3">
             <div className="mb-1.5 text-[11px] text-muted">Průhlednost</div>
@@ -4481,7 +4464,7 @@ function TouchLayer({
       >
         <Crosshair className="size-7" />
       </button>
-      <div className={`pointer-events-auto absolute ${utilitySideClass} flex items-center gap-2`} style={{ touchAction: "none", bottom: "max(12px, env(safe-area-inset-bottom))", opacity }}>
+      <div className={`vb-touch-utility pointer-events-auto absolute ${utilitySideClass} flex items-center gap-2`} style={{ touchAction: "none", bottom: "max(12px, env(safe-area-inset-bottom))", opacity }}>
         <button
           type="button"
           onClick={onCharacter}
