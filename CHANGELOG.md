@@ -333,3 +333,11 @@
 - Expanded the loot choice dialog and made its offer grid responsive across phone, tablet, and desktop widths.
 - Loot rarity labels now use the shared Badge component and canonical rarity colors; selected cards have clearer focus styling.
 - No gameplay, loot, crafting, or save-data behavior changed.
+
+
+## [Unreleased] – Responsive forge layout
+
+- Expanded the forge workspace while keeping the character profile compact.
+- Made weapon selection grids responsive for phone, tablet, and desktop widths in crafting and upgrades.
+- Increased spacing and touch target sizing for forge weapon and component slot selection.
+- No crafting, material, upgrade, or loadout mechanics changed.

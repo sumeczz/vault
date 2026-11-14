@@ -59,3 +59,11 @@ Komponenty používají canonical tokeny definované v `src/styles.css`: backgro
 - Dialog loot nabídky dostal větší maximální šířku a bezpečnější mobilní odsazení; obsah zůstává uvnitř vlastního scrollu.
 - Karta odměny používá sdílený `Badge` pro textovou raritu a centrální `RARITY_COLOR`; výběr má výraznější focus a vybraný stav.
 - Herní logika, nabídky, přerolování, scrap ani sloty zbraní se nemění.
+
+
+## Design system – část 6: kovárna a zbrojnice
+
+- Kovárna dostala širší pracovní plochu (`max-w-5xl`), zatímco obrazovka Postavy zůstává kompaktní (`max-w-md`).
+- Výběr zbraní ve výrobě i úpravách používá 2 sloupce na telefonu, 3 na středních šířkách a 4 na široké obrazovce.
+- Sloty úprav mají větší rozestupy a dotykové cíle; výběr komponent zůstává čitelný v jednom sloupci na telefonu a přechází do více sloupců na širších obrazovkách.
+- Zachována je stávající logika receptů, materiálů, level požadavků, potvrzování výměny a nasazení startovní zbraně.

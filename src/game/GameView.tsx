@@ -1201,7 +1201,7 @@ function PostavaScreen({
     : [];
   return (
     <div className="vb-vignette absolute inset-0 flex flex-col items-center overflow-y-auto px-4 pt-[max(12px,env(safe-area-inset-top))] pb-28">
-      <div className="flex w-full max-w-md flex-col gap-3">
+      <div className={`flex w-full ${mode === "kovarna" ? "max-w-5xl" : "max-w-md"} flex-col gap-3`}>
         <ScreenHeader
           className="vb-enter-soft"
           eyebrow={mode === "postava" ? "Profil hráče" : "Dílna / zbrojení"}
@@ -1391,7 +1391,7 @@ function PostavaScreen({
               <span className="text-[11px] text-subtle">Výzvy: vždy služební pistole</span>
             </div>
           )}
-          <div className="mt-2 grid grid-cols-4 gap-1.5" aria-label="Zbrojnice: vyber zbraň">
+          <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4" aria-label="Zbrojnice: vyber zbraň">
             {forgeWeapons.map((archetype) => {
               const owned = character.craftedWeapons.includes(archetype);
               const active = character.starterArchetype === archetype;
@@ -1409,7 +1409,7 @@ function PostavaScreen({
                   aria-pressed={selectedForgeWeapon === archetype}
                   aria-label={`${ARCHETYPE_LABEL[archetype].name}; fragmenty ${fragments} z ${recipe.fragments}; ${owned ? "vyrobená" : "nevlastníš"}`}
                   title={`${ARCHETYPE_LABEL[archetype].name} · ${fragments}/${recipe.fragments} fragmentů · zdroje: ${sourceNames || "bossové"}${owned ? " · vyrobená" : ""}${active ? " · nasazená" : ""}`}
-                  className={`relative flex min-h-16 min-w-0 flex-col items-center justify-center gap-0.5 rounded-lg border p-1.5 transition-colors ${
+                  className={`relative flex min-h-20 min-w-0 flex-col items-center justify-center gap-1 rounded-xl border p-2 transition-colors ${
                     selectedForgeWeapon === archetype
                       ? "border-accent-blue bg-surface-raised text-accent-blue ring-1 ring-accent-blue"
                       : owned
@@ -1529,7 +1529,7 @@ function PostavaScreen({
             </div>
           ) : (
             <>
-              <div className="mt-2 grid grid-cols-4 gap-1.5" aria-label="Vyber vyrobenou zbraň">
+              <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4" aria-label="Vyber vyrobenou zbraň">
                 {character.craftedWeapons.map((archetype) => (
                   <button
                     key={archetype}
@@ -1552,7 +1552,7 @@ function PostavaScreen({
                 ))}
               </div>
               <p className="mt-2 text-[11px] text-subtle">Výměna účtuje plnou cenu znovu; původní součást se nevrací.</p>
-              <div className="mt-2 grid grid-cols-3 gap-1.5" aria-label="Slot úprav">
+              <div className="mt-3 grid grid-cols-3 gap-2" aria-label="Slot úprav">
                 {(["barrel", "magazine", "core"] as const).map((slot) => {
                   const SlotIcon = slotIcons[slot];
                   const installed = selectedLoadout[slot];
