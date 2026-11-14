@@ -1,4 +1,4 @@
-# Changelog
+## Základ sdílené UI knihovny (14. 11. 2026)\n\n- Přidána první společná React vrstva v src/components/ui.tsx: Button, Panel, Badge, ProgressBar a SectionHeading.\n- Přidány společné styly komponent navázané na canonical Vaultbreak tokeny; zachovány původní třídy a stávající obrazovky bez hromadného redesignu.\n- Dokumentováno použití komponent v docs/ui-component-library.md a propojeno s hlavními UI pravidly.\n- git diff --check prošel. Typecheck byl spuštěn, ale vzdálený proces zatím nevrátil výsledek; ověření tedy zůstává otevřené.\n\n# Changelog
 
 ## Opravy dávkové střelby a startu elitních vln (13. 11. 2026)
 
@@ -270,7 +270,7 @@
 - Připraveny cílové adresáře pro postavy, zbraně, nepřátele, projektily a efekty.
 - Nebyly vytvořeny obrázkové assety ani změněn renderer/simulace; procedurální vykreslování zůstává beze změny.
 
-## 2026-11-14 � Engineering governance
+## 2026-11-14 � Engineering governance
 
 - Added binding engineering and release standards in docs/engineering-standards.md.
 - Recorded verified audit baseline: typecheck, 117 game tests, 55 app-data/auth tests and production build pass; lint fails and browser/soak QA remain open.

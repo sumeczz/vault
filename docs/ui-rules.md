@@ -3,7 +3,7 @@
 Závazný návrh rozložení: velikosti, prvky, stránky a herní plocha.
 Kód se řídí tímto dokumentem — výjimky schvaluje jeho aktualizace.
 
-**Centrální vizuální standard:** [VAULTBREAK-VISUAL-STANDARD.md](../graphics/VAULTBREAK-VISUAL-STANDARD.md) definuje společnou paletu, typografii, rarity, ikony, karty, HUD, assety a pravidla konzistence napříč všemi obrazovkami. Tento dokument řeší detailní rozložení UI; při změně vzhledu se oba dokumenty aktualizují společně.
+**Centrální vizuální standard:** [VAULTBREAK-VISUAL-STANDARD.md](../graphics/VAULTBREAK-VISUAL-STANDARD.md) definuje společnou paletu, typografii, rarity, ikony, karty, HUD, assety a pravidla konzistence napříč všemi obrazovkami. Implementační komponenty jsou popsány v [ui-component-library.md](ui-component-library.md) a umístěny v `src/components/ui.tsx`. Tento dokument řeší detailní rozložení UI; při změně vzhledu se všechny tři dokumenty aktualizují společně.
 
 Pravidlo č. 1: **více ikon, méně textu.** Každá sekce má ikonu v nadpisu,
 každý řádek statistiky má ikonu vlevo. Text nese jen informaci, kterou ikona
