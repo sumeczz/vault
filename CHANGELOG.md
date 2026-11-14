@@ -326,3 +326,10 @@
 - Přidán jednotný vstupní prvek pro seed běhu.
 
 \n
+
+## [Unreleased] – Loot UI research and responsive layout
+
+- Added research-backed inventory/loot layout guidance in `docs/game-inventory-ui-research.md`.
+- Expanded the loot choice dialog and made its offer grid responsive across phone, tablet, and desktop widths.
+- Loot rarity labels now use the shared Badge component and canonical rarity colors; selected cards have clearer focus styling.
+- No gameplay, loot, crafting, or save-data behavior changed.

@@ -155,7 +155,7 @@ import { dpsEstimate, starterWeapon, weaponBehaviorsList } from "./weapons";
 import { AuthScreen } from "./auth-screen";
 import { loadProfile, getProfileNickname } from "./auth";
 import { EnemyIcon, MaterialIcon, TalentIcon, WeaponIcon } from "./ui-icons";
-import { Button, Panel, ScreenHeader, SectionHeading } from "@/components/ui";
+import { Badge, Button, Panel, ScreenHeader, SectionHeading } from "@/components/ui";
 
 type Screen = "menu" | "postava" | "kovarna" | "help" | "admin" | "codex" | "achievements" | "cesta" | "slovnicek" | "stats" | "playing" | "paused" | "loot" | "dead" | "win" | "base" | "wheel";
 
@@ -3920,8 +3920,8 @@ function LootOverlay({
   onReroll: () => void;
 }) {
   return (
-    <div className="absolute inset-0 flex items-end justify-center overflow-y-auto bg-bg/70 p-3 pt-8 sm:items-center">
-      <div className="vb-dialog vb-enter max-h-[94dvh] w-full max-w-lg overflow-y-auto p-4 sm:p-5">
+    <div className="absolute inset-0 flex items-end justify-center overflow-y-auto bg-bg/70 p-2 pt-6 sm:items-center sm:p-4">
+      <div className="vb-dialog vb-enter max-h-[94dvh] w-full max-w-4xl overflow-y-auto p-3 sm:p-5">
         <div className="mb-3 flex items-center justify-between gap-2">
           <h2 className="flex items-center gap-2 font-display text-2xl font-semibold">
             <Swords className="size-6 text-accent-blue" />
@@ -3938,14 +3938,14 @@ function LootOverlay({
               type="button"
               disabled={rerolls <= 0}
               onClick={onReroll}
-              className="flex h-12 items-center gap-1.5 rounded-xl border border-border px-3.5 text-xs font-medium text-muted transition-transform active:scale-95 disabled:opacity-40"
+              className="vb-ui-button vb-ui-button--secondary vb-ui-button--md flex items-center gap-1.5"
             >
               <RotateCcw className="size-4" />
               Přerolovat {rerolls}
             </button>
           </div>
         </div>
-        <div className="grid gap-2.5 sm:grid-cols-3">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {loot.map((offer, i) => (
             <LootCard key={i} index={i} offer={offer} current={current} selected={weaponPick === i} onPick={() => onPick(i)} />
           ))}
@@ -4045,13 +4045,14 @@ function LootCard({ index, offer, current, selected, onPick }: { index: number; 
     <button
       type="button"
       onClick={onPick}
+      aria-pressed={selected}
       style={{ "--vb-i": index, "--vb-glow": RARITY_COLOR[rarity] } as CSSProperties}
-      className={`vb-loot-card vb-stagger rounded-2xl bg-elevated p-3.5 text-left ${selected ? "border-accent" : ""}`}
+      className={`vb-loot-card vb-stagger min-h-44 rounded-2xl bg-elevated p-4 text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-blue ${selected ? "border-accent ring-1 ring-accent-blue" : ""}`}
     >
       <div className="flex items-center gap-2">
         <span className={`flex size-9 shrink-0 items-center justify-center rounded-lg border border-border bg-surface ${rarityClass(rarity)}`}>{offerIcon}</span>
         <span className="min-w-0">
-          <span className={`block text-[11px] font-semibold tracking-[0.15em] ${rarityClass(rarity)}`}>{RARITY_LABEL[rarity]}</span>
+          <Badge tone="rarity" dot style={{ "--vb-rarity-color": RARITY_COLOR[rarity] } as CSSProperties} className="mb-1 w-fit">{RARITY_LABEL[rarity]}</Badge>
           <span className="mt-0.5 block truncate font-display text-[15px] font-semibold leading-snug">{title}</span>
         </span>
       </div>

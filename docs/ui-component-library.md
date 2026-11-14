@@ -51,3 +51,11 @@ Komponenty používají canonical tokeny definované v `src/styles.css`: backgro
 - Denní a týdenní výzvy zůstávají jako informační dlaždice, protože zobrazují vedle akce také seed, nejlepší úroveň a počet pokusů.
 - Výběr sektoru a zbrojnice si zachovávají vlastní skupinové stavy `aria-pressed`; nejde o obecná tlačítka.
 \n
+
+## Design system – část 5: výzkum inventáře a loot nabídky
+
+- Přidán `docs/game-inventory-ui-research.md` s podklady Android Developers, Unity a IEEE COG a rozhodnutími pro desktop/mobil.
+- Loot nabídka používá responzivní mřížku: 1 sloupec na telefonu, 2 na střední šířce a 3 na široké obrazovce.
+- Dialog loot nabídky dostal větší maximální šířku a bezpečnější mobilní odsazení; obsah zůstává uvnitř vlastního scrollu.
+- Karta odměny používá sdílený `Badge` pro textovou raritu a centrální `RARITY_COLOR`; výběr má výraznější focus a vybraný stav.
+- Herní logika, nabídky, přerolování, scrap ani sloty zbraní se nemění.
