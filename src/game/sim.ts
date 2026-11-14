@@ -2179,7 +2179,14 @@ export class Run {
   update(dtRaw: number, input: Actions, viewW: number, viewH: number) {
     this.viewW = viewW;
     this.viewH = viewH;
-    this.zoom = viewW < 520 ? 1.22 : viewW < 900 ? 1.08 : 1;
+    // Portrait phone view is taller than the 760-unit room at the old 1.22 zoom.
+    // That made clampCamera lock the vertical axis at room center, so the camera
+    // appeared stationary while the player travelled. Fit the room height to
+    // roughly 88% of the viewport to retain a visible border and allow follow.
+    const portraitFollowZoom = viewH > viewW
+      ? viewH / (ROOM_H * 0.88)
+      : 1;
+    this.zoom = Math.max(viewW < 520 ? 1.22 : viewW < 900 ? 1.08 : 1, portraitFollowZoom);
     if (this.paused || this.phase === "loot" || this.phase === "dead" || this.phase === "win") {
       this.cam.trauma *= 0.9;
       this.updateCamera(dtRaw);
