@@ -29,3 +29,12 @@ Komponenty používají canonical tokeny definované v `src/styles.css`: backgro
 1. Centralizovat mapování rarity a barev.
 2. Přidat sdílené form controls, dialog a tooltip.
 3. Převádět existující obrazovky po jedné a ověřovat desktop i mobil.
+## Design system – část 2: centrální tokeny a hlavičky obrazovek
+
+- Legacy CSS aliasy `bg/surface/elevated/fg/muted/accent/danger/border` nyní odkazují na schválenou paletu VAULTBREAK.
+- Rarity mají jednotné mapování: common šedá, uncommon zelená, rare modrá, epic fialová, legendary oranžová, mythic červená.
+- `RARITY_COLOR` v `src/game/types.ts` zůstává jediným zdrojem barev pro herní data; Tailwind rarity tokeny odpovídají stejným hodnotám.
+- Přidána komponenta `ScreenHeader` pro jednotnou hierarchii eyebrow / title / description / icon.
+- ScreenHeader nyní používají Postava, Kovárna, Cesta, Kodex a Úspěchy.
+- Herní logika, ukládání dat, názvy rarit a ovládání zůstávají beze změny.
+\n

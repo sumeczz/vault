@@ -1,23 +1,24 @@
 @import "tailwindcss";
 
 @theme {
-  --color-bg: #0a0a0b;
-  --color-surface: #141416;
-  --color-elevated: #1c1c20;
-  --color-fg: #f4f4f5;
-  --color-muted: #a1a1aa;
-  --color-subtle: #71717a;
-  --color-accent: #c8ccd4;
-  --color-accent-fg: #0a0a0b;
-  --color-danger: #c45c3e;
-  --color-ice: #9eb4c4;
-  --color-border: #2a2a30;
+  /* Legacy aliases map to the approved VAULTBREAK visual standard. */
+  --color-bg: #080d13;
+  --color-surface: #101923;
+  --color-elevated: #172431;
+  --color-fg: #f3f6fa;
+  --color-muted: #a8b6c5;
+  --color-subtle: #718293;
+  --color-accent: #43bfff;
+  --color-accent-fg: #080d13;
+  --color-danger: #ff555b;
+  --color-ice: #43bfff;
+  --color-border: #304354;
   --color-rarity-common: #8a9099;
-  --color-rarity-uncommon: #5ea38a;
-  --color-rarity-rare: #6b93c2;
-  --color-rarity-epic: #c45c3e;
-  --color-rarity-legendary: #d6dde4;
-  --color-rarity-mythic: #9eb4c4;
+  --color-rarity-uncommon: #52d69a;
+  --color-rarity-rare: #43bfff;
+  --color-rarity-epic: #b58aff;
+  --color-rarity-legendary: #ff8a24;
+  --color-rarity-mythic: #ff555b;
   /* Knihovna komponent v1.0 (§2) — nové tokeny; staré výše zůstávají jako aliasy do konce migrace. */
   --color-bg-primary: #080d13;
   --color-surface-primary: #101923;
@@ -608,5 +609,38 @@
     display: flex;
     min-width: 0;
     line-height: 1.2;
+  }
+}
+
+@layer components {
+  .vb-ui-screen-header {
+    display: grid;
+    justify-items: center;
+    gap: 7px;
+    padding: 8px 0 4px;
+    text-align: center;
+  }
+  .vb-ui-screen-header__eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--color-text-secondary);
+    font: 600 10px/1.2 var(--font-sans);
+    letter-spacing: .2em;
+    text-transform: uppercase;
+  }
+  .vb-ui-screen-header__eyebrow svg { width: 15px; height: 15px; color: var(--color-accent-blue); }
+  .vb-ui-screen-header h1 {
+    margin: 0;
+    color: var(--color-text-primary);
+    font: 800 clamp(26px, 7vw, 34px)/1.05 var(--font-display);
+    letter-spacing: -.035em;
+  }
+  .vb-ui-screen-header p {
+    max-width: 34rem;
+    margin: 2px 0 0;
+    color: var(--color-text-secondary);
+    font-size: 13px;
+    line-height: 1.5;
   }
 }

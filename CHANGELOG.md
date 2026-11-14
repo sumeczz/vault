@@ -308,3 +308,10 @@
 - Vytvořen `graphics/VAULTBREAK-VISUAL-STANDARD.md` jako centrální kontrakt pro barvy, typografii, layout, tlačítka, karty, navigaci, ikony, HUD, raritu, zbraně, postavy, nepřátele, prostředí, VFX a výrobu assetů.
 - Popsány rozpory mezi referenčními obrázky, aktuálními rarity barvami v kódu a schváleným retro pixel-art workflow; dokument záměrně nemění herní kód ani nevybírá nový art direction bez schválení.
 - `docs/ui-rules.md` nyní odkazuje na centrální vizuální standard.
+## Sjednocení vizuálního systému – část 2 (14. 11. 2026)
+
+- Legacy UI tokeny a rarity barvy převedeny na schválenou centrální paletu.
+- Přidána sdílená komponenta ScreenHeader a nasazena na obrazovky Postava, Kovárna, Cesta, Kodex a Úspěchy.
+- Herní logika ani data postupu nebyly změněny.
+
+\n

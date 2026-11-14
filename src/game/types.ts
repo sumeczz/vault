@@ -240,13 +240,14 @@ export const RARITY_LABEL: Record<Rarity, string> = {
   mythic: "Mýtická",
 };
 
+/** Jediný zdroj barev rarit pro loot, inventář, kodex i vybavení. */
 export const RARITY_COLOR: Record<Rarity, string> = {
   common: "#8a9099",
-  uncommon: "#5ea38a",
-  rare: "#6b93c2",
-  epic: "#c45c3e",
-  legendary: "#d6dde4",
-  mythic: "#9eb4c4",
+  uncommon: "#52d69a",
+  rare: "#43bfff",
+  epic: "#b58aff",
+  legendary: "#ff8a24",
+  mythic: "#ff555b",
 };
 
 export const ELEMENT_COLOR: Record<Element, string> = {

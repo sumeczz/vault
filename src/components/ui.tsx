@@ -151,3 +151,31 @@ export function SectionHeading({
     </div>
   );
 }
+
+export interface ScreenHeaderProps extends HTMLAttributes<HTMLDivElement> {
+  eyebrow: string;
+  title: string;
+  description?: ReactNode;
+  icon?: ReactNode;
+}
+
+/** Standard header shared by all non-combat game screens. */
+export function ScreenHeader({
+  eyebrow,
+  title,
+  description,
+  icon,
+  className,
+  ...props
+}: ScreenHeaderProps) {
+  return (
+    <header className={clsx("vb-ui-screen-header", className)} {...props}>
+      <div className="vb-ui-screen-header__eyebrow">
+        {icon ? <span aria-hidden="true">{icon}</span> : null}
+        {eyebrow}
+      </div>
+      <h1>{title}</h1>
+      {description ? <p>{description}</p> : null}
+    </header>
+  );
+}

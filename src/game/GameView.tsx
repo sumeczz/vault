@@ -155,6 +155,7 @@ import { dpsEstimate, starterWeapon, weaponBehaviorsList } from "./weapons";
 import { AuthScreen } from "./auth-screen";
 import { loadProfile, getProfileNickname } from "./auth";
 import { EnemyIcon, MaterialIcon, TalentIcon, WeaponIcon } from "./ui-icons";
+import { ScreenHeader } from "@/components/ui";
 
 type Screen = "menu" | "postava" | "kovarna" | "help" | "admin" | "codex" | "achievements" | "cesta" | "slovnicek" | "stats" | "playing" | "paused" | "loot" | "dead" | "win" | "base" | "wheel";
 
@@ -1201,20 +1202,12 @@ function PostavaScreen({
   return (
     <div className="vb-vignette absolute inset-0 flex flex-col items-center overflow-y-auto px-4 pt-[max(12px,env(safe-area-inset-top))] pb-28">
       <div className="flex w-full max-w-md flex-col gap-3">
-        <div className="vb-enter-soft flex flex-col items-center text-center" style={{ "--vb-i": 0 } as CSSProperties}>
-          <p className="mb-3 flex items-center gap-2 font-mono text-xs tracking-[0.3em] text-ice">
-            {mode === "postava" ? <User className="size-4" /> : <Wrench className="size-4" />}
-            {mode === "postava" ? "PROFIL HRÁČE" : "DÍLNA / ZBROJENÍ"}
-          </p>
-          <h1 className="font-display text-4xl font-extrabold tracking-tight">
-            {mode === "postava" ? (
-              <>
-                <span className="vb-title-gradient">PO</span>
-                <span className="text-ice">STAVA</span>
-              </>
-            ) : <span className="text-ice">KOVÁRNA</span>}
-          </h1>
-        </div>
+        <ScreenHeader
+          className="vb-enter-soft"
+          eyebrow={mode === "postava" ? "Profil hráče" : "Dílna / zbrojení"}
+          title={mode === "postava" ? "Postava" : "Kovárna"}
+          icon={mode === "postava" ? <User /> : <Wrench />}
+        />
         {notice ? <p className="rounded-xl border border-accent/50 bg-surface px-3 py-2 text-sm text-fg" role="status">{notice}</p> : null}
         {mode === "postava" ? <CharacterPanel save={save} character={character} /> : null}
         {mode === "kovarna" ? (
@@ -2132,16 +2125,13 @@ function CestaScreen({ save, onCodex }: { save: SaveData; onCodex: () => void })
   return (
     <div className="vb-vignette absolute inset-0 flex flex-col items-center overflow-y-auto px-4 pt-[max(12px,env(safe-area-inset-top))] pb-28">
       <div className="flex w-full max-w-md flex-col gap-3">
-        <div className="vb-enter-soft flex flex-col items-center text-center">
-          <p className="mb-3 flex items-center gap-2 font-mono text-xs tracking-[0.3em] text-ice">
-            <Map className="size-4" />
-            PLÁN POSTUPU
-          </p>
-          <h1 className="font-display text-4xl font-extrabold tracking-tight">CESTA</h1>
-          <p className="mt-4 max-w-sm text-[15px] leading-relaxed text-muted">
-            Co se kdy odemkne · jsi na LVL {best}
-          </p>
-        </div>
+        <ScreenHeader
+          className="vb-enter-soft"
+          eyebrow="Plán postupu"
+          title="Cesta"
+          icon={<Map />}
+          description={<>Co se kdy odemkne · jsi na LVL {best}</>}
+        />
         <div className="h-1.5 overflow-hidden rounded-full bg-elevated" role="progressbar" aria-label="Postup odemykání" aria-valuemin={0} aria-valuemax={UNLOCKS.length} aria-valuenow={doneCount}>
           <AnimatedFill className="h-full rounded-full bg-ice" value={(doneCount / UNLOCKS.length) * 100} />
         </div>
@@ -2334,16 +2324,13 @@ function CodexScreen() {
   return (
     <div className="vb-vignette absolute inset-0 flex flex-col items-center overflow-y-auto px-4 pt-[max(12px,env(safe-area-inset-top))] pb-28">
       <div className="flex w-full max-w-md flex-col gap-3">
-        <div className="vb-enter-soft flex flex-col items-center text-center">
-          <p className="mb-3 flex items-center gap-2 font-mono text-xs tracking-[0.3em] text-ice">
-            <BookOpen className="size-4" />
-            SBÍRKA
-          </p>
-          <h1 className="font-display text-4xl font-extrabold tracking-tight">KODEX</h1>
-          <p className="mt-4 max-w-sm text-[15px] leading-relaxed text-muted">
-            Odemčeno {progress.done}/{progress.total}. Každá položka trvale posiluje postavu.
-          </p>
-        </div>
+        <ScreenHeader
+          className="vb-enter-soft"
+          eyebrow="Sbírka"
+          title="Kodex"
+          icon={<BookOpen />}
+          description={<>Odemčeno {progress.done}/{progress.total}. Každá položka trvale posiluje postavu.</>}
+        />
         <div className="rounded-2xl border border-border bg-surface p-3">
           <h2 className="flex items-center gap-2 font-mono text-[11px] tracking-[0.25em] text-subtle">
             <Sparkles className="size-4 text-accent-blue" />
@@ -2452,16 +2439,13 @@ function AchievementsScreen() {
   return (
     <div className="vb-vignette absolute inset-0 flex flex-col items-center overflow-y-auto px-4 pt-[max(12px,env(safe-area-inset-top))] pb-28">
       <div className="flex w-full max-w-md flex-col gap-3">
-        <div className="vb-enter-soft flex flex-col items-center text-center">
-          <p className="mb-3 flex items-center gap-2 font-mono text-xs tracking-[0.3em] text-ice">
-            <Trophy className="size-4" />
-            METY
-          </p>
-          <h1 className="font-display text-4xl font-extrabold tracking-tight">ÚSPĚCHY</h1>
-          <p className="mt-4 max-w-sm text-[15px] leading-relaxed text-muted">
-            Splněno {have.size}/{ACHIEVEMENTS.length}. Odemknutí je trvalé.
-          </p>
-        </div>
+        <ScreenHeader
+          className="vb-enter-soft"
+          eyebrow="Mety"
+          title="Úspěchy"
+          icon={<Trophy />}
+          description={<>Splněno {have.size}/{ACHIEVEMENTS.length}. Odemknutí je trvalé.</>}
+        />
         <ul className="grid grid-cols-2 gap-1.5">
           {ACHIEVEMENTS.map((a) => {
             const has = have.has(a.id);
