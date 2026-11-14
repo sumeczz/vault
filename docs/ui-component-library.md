@@ -37,4 +37,9 @@ Komponenty používají canonical tokeny definované v `src/styles.css`: backgro
 - Přidána komponenta `ScreenHeader` pro jednotnou hierarchii eyebrow / title / description / icon.
 - ScreenHeader nyní používají Postava, Kovárna, Cesta, Kodex a Úspěchy.
 - Herní logika, ukládání dat, názvy rarit a ovládání zůstávají beze změny.
+\n## Design system – část 3: další obrazovky a akce
+
+- ScreenHeader rozšířen na Slovníček a Statistiky.
+- Zpětné akce v těchto obrazovkách používají sdílenou komponentu Button místo lokálních tříd.
+- Všechny hlavní metastránky nyní používají stejnou hlavičku a stejnou vizuální hierarchii.
 \n

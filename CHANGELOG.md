@@ -314,4 +314,9 @@
 - Přidána sdílená komponenta ScreenHeader a nasazena na obrazovky Postava, Kovárna, Cesta, Kodex a Úspěchy.
 - Herní logika ani data postupu nebyly změněny.
 
+\n## Sjednocení metastránek – část 3 (14. 11. 2026)
+
+- ScreenHeader sjednocuje také Slovníček a Statistiky.
+- Zpětné akce v těchto obrazovkách používají sdílený Button.
+
 \n

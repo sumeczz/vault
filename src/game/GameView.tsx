@@ -155,7 +155,7 @@ import { dpsEstimate, starterWeapon, weaponBehaviorsList } from "./weapons";
 import { AuthScreen } from "./auth-screen";
 import { loadProfile, getProfileNickname } from "./auth";
 import { EnemyIcon, MaterialIcon, TalentIcon, WeaponIcon } from "./ui-icons";
-import { ScreenHeader } from "@/components/ui";
+import { Button, ScreenHeader } from "@/components/ui";
 
 type Screen = "menu" | "postava" | "kovarna" | "help" | "admin" | "codex" | "achievements" | "cesta" | "slovnicek" | "stats" | "playing" | "paused" | "loot" | "dead" | "win" | "base" | "wheel";
 
@@ -2285,13 +2285,12 @@ function SlovnicekScreen({ onBack }: { onBack: () => void }) {
   return (
     <div className="absolute inset-0 flex items-end justify-center overflow-y-auto bg-bg/80 p-4 sm:items-center">
       <div className="vb-dialog vb-enter max-h-[calc(100dvh-2rem)] w-full max-w-md overflow-y-auto p-4 sm:p-5">
-        <h2 className="flex items-center gap-2 font-display text-2xl font-semibold">
-          <BookMarked className="size-6 text-accent-blue" />
-          Slovníček
-        </h2>
-        <p className="mt-1 text-sm text-muted">
-          Všechny pojmy na jednom místě · {Object.keys(GLOSSARY).length} hesel
-        </p>
+        <ScreenHeader
+          eyebrow="Databáze"
+          title="Slovníček"
+          icon={<BookMarked />}
+          description={<>Všechny pojmy na jednom místě · {Object.keys(GLOSSARY).length} hesel</>}
+        />
         <ul className="mt-4 grid max-h-[52dvh] grid-cols-2 gap-1.5 overflow-y-auto">
           {Object.values(GLOSSARY).map((g) => (
             <li key={g.term} className="min-w-0 rounded-lg border border-border/60 bg-surface/60">
@@ -2306,9 +2305,7 @@ function SlovnicekScreen({ onBack }: { onBack: () => void }) {
             </li>
           ))}
         </ul>
-        <button type="button" onClick={onBack} className="vb-btn-ghost mt-4 w-full">
-          Zpět do menu
-        </button>
+        <Button variant="secondary" fullWidth className="mt-4" onClick={onBack}>Zpět do menu</Button>
       </div>
     </div>
   );
@@ -2484,20 +2481,12 @@ function StatsScreen({ save, onBack }: { save: SaveData; onBack: () => void }) {
   return (
     <div className="absolute inset-0 flex items-end justify-center overflow-y-auto bg-bg/80 p-4 sm:items-center">
       <div className="vb-dialog vb-enter max-h-[calc(100dvh-2rem)] w-full max-w-md overflow-y-auto p-4 sm:p-5">
-        <div className="flex items-center justify-between gap-2 mb-2">
-          <h2 className="flex items-center gap-2 font-display text-2xl font-semibold">
-            <BarChart3 className="size-6 text-accent-blue" />
-            Statistiky
-          </h2>
-          {profileNick ? (
-            <span className="rounded-xl border border-border bg-elevated px-3 py-1 font-mono text-xs text-subtle">
-              {profileNick}
-            </span>
-          ) : null}
-        </div>
-        <p className="text-xs text-muted mb-5">
-          Celkové statistiky napříč všemi běhy na tomto zařízení.
-        </p>
+        <ScreenHeader
+          eyebrow={profileNick ? `Profil · ${profileNick}` : "Přehled běhů"}
+          title="Statistiky"
+          icon={<BarChart3 />}
+          description="Celkové statistiky napříč všemi běhy na tomto zařízení."
+        />
         <div className="mb-4 grid grid-cols-2 gap-1.5">
           <Stat label="Běhů" value={String(save.runs)} />
           <Stat label="Nejv. úroveň" value={String(Math.max(save.bestLevel, save.bestRooms))} />
@@ -2545,9 +2534,7 @@ function StatsScreen({ save, onBack }: { save: SaveData; onBack: () => void }) {
             Průměrně {avgKills} zabití a {avgTime}s na běh.
           </div>
         </div>
-        <button type="button" onClick={onBack} className="vb-btn-primary mt-6 w-full">
-          Zpět
-        </button>
+        <Button variant="secondary" fullWidth className="mt-4" onClick={onBack}>Zpět</Button>
       </div>
     </div>
   );
