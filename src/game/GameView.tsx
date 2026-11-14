@@ -395,20 +395,40 @@ export function GameView() {
     const canvas = canvasRef.current;
     const wrap = wrapRef.current;
     if (!canvas || !wrap) return;
-    const ctx = canvas.getContext("2d");
+    let ctx = canvas.getContext("2d");
     if (!ctx) return;
+    let contextLost = false;
+    const onContextLost = (event: Event) => {
+      event.preventDefault();
+      contextLost = true;
+      console.warn("[Vaultbreak] Canvas context lost; simulation paused until restore.");
+    };
+    const onContextRestored = () => {
+      ctx = canvas.getContext("2d");
+      contextLost = !ctx;
+      if (ctx) resize();
+      console.info("[Vaultbreak] Canvas context restored.");
+    };
+    canvas.addEventListener("contextlost", onContextLost);
+    canvas.addEventListener("contextrestored", onContextRestored);
     const unbind = bindInput(canvas);
 
 
     const resize = () => {
       const w = wrap.clientWidth;
       const h = wrap.clientHeight;
-      const dpr = Math.min(window.devicePixelRatio || 1, 2);
-      canvas.width = Math.floor(w * dpr);
-      canvas.height = Math.floor(h * dpr);
+      if (w <= 0 || h <= 0 || !Number.isFinite(w) || !Number.isFinite(h)) return;
+      const rawDpr = window.devicePixelRatio || 1;
+      const dpr = Number.isFinite(rawDpr) ? Math.min(Math.max(rawDpr, 1), 2) : 1;
+      const pixelWidth = Math.max(1, Math.floor(w * dpr));
+      const pixelHeight = Math.max(1, Math.floor(h * dpr));
+      if (canvas.width !== pixelWidth || canvas.height !== pixelHeight) {
+        canvas.width = pixelWidth;
+        canvas.height = pixelHeight;
+      }
       canvas.style.width = `${w}px`;
       canvas.style.height = `${h}px`;
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      ctx?.setTransform(dpr, 0, 0, dpr, 0, 0);
     };
     resize();
     const ro = new ResizeObserver(resize);
@@ -416,6 +436,8 @@ export function GameView() {
 
     const hudAcc = { t: 0 };
     const loop = (now: number) => {
+      try {
+      if (contextLost || !ctx) return;
       const last = lastRef.current || now;
       const dt = Math.min(0.05, (now - last) / 1000);
       lastRef.current = now;
@@ -479,7 +501,11 @@ export function GameView() {
           pushToasts(run.drainEvents());
         }
       }
-      rafRef.current = requestAnimationFrame(loop);
+      } catch (error) {
+        console.error("[Vaultbreak] Unhandled game frame error:", error);
+      } finally {
+        rafRef.current = requestAnimationFrame(loop);
+      }
     };
     rafRef.current = requestAnimationFrame(loop);
 
@@ -515,6 +541,8 @@ export function GameView() {
     return () => {
       cancelAnimationFrame(rafRef.current);
       ro.disconnect();
+      canvas.removeEventListener("contextlost", onContextLost);
+      canvas.removeEventListener("contextrestored", onContextRestored);
       unbind();
       delete window.__controlsTest;
     };

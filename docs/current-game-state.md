@@ -160,7 +160,7 @@ dialogy, low-HP vignette, pulzující BOSS odznak a banner odpočtu vlny. Animac
 
 ## Spuštění a ověření
 
-Po instalaci závislostí spusť `npm run dev`; aplikace je na `http://localhost:8080`. Projekt cílí na Node.js 22. Audit 14. 11. 2026: `npm run typecheck` PASS, herní testy 120/120 PASS, app-data/auth testy 55/55 PASS, `npm run build` PASS. ESLint změněných souborů PASS; úplný `npm run lint` má dosud evidované chyby mimo tuto změnu. Desktop/mobile browser render smoke prošel bez konzolových chyb, ale kvůli novému lokálnímu profilu skončil na přihlašovací obrazovce a neověřil herní Canvas. 15min soak test zůstává otevřený. Viz [engineering-standards.md](./engineering-standards.md).
+Po instalaci závislostí spusť `npm run dev`; aplikace je na `http://localhost:8080`. Projekt cílí na Node.js 22. Audit 14. 11. 2026: `npm run typecheck` PASS, herní testy 120/120 PASS, app-data/auth testy 55/55 PASS, `npm run build` PASS. ESLint `src/game/GameView.tsx` prošel bez chyb (1 existující upozornění na závislosti hooků). Úplný `npm run test` nyní skutečně spouští všech 9 skriptových souborů, ale odhalil 8 selhání v `grok-pwa-plugin.test.mjs`; app-data/auth 55/55 a herní 120/120 testů procházejí. Desktop/mobile browser render smoke prošel bez konzolových chyb, ale kvůli novému lokálnímu profilu skončil na přihlašovací obrazovce a neověřil herní Canvas. 15min manuální soak test uživatel úspěšně dokončil: přibližně 10. úroveň a návrat do menu. Automatizovaný browser soak a ověření Canvas context recovery zůstávají otevřené. Viz [engineering-standards.md](./engineering-standards.md).
 
 ## Známá omezení
 

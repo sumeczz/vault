@@ -27,10 +27,11 @@ jako budoucí úkoly. Propojení herních systémů je popsáno v
 Tato etapa má přednost před všemi produktovými rozšířeními. Do jejího dokončení se nepřidávají nové schopnosti, zbraně, efekty ani progrese. Závazná kritéria jsou v [engineering-standards.md](./engineering-standards.md).
 
 - Reprodukovat zmizení herního světa; přidat diagnostiku Canvas context lost/restored, heartbeat snímků, rozměrů/DPR, kamery/zoomu a neplatných souřadnic.
-- Opravit render loop tak, aby výjimka jednoho snímku nezastavila další snímky a chyba nebyla skryta černou obrazovkou.
-- Ověřit resize/orientaci, background/foreground, pauzu/resume a 15min běh včetně boss/endgame zátěže.
-- Doplnit renderer regresní testy a browser E2E hlavního průchodu.
-- Opravit lint chyby a skutečné spouštění skriptových testů (glob nyní vrací 0).
+- [x] Render loop zachytává výjimku snímku, zapisuje ji do konzole a vždy plánuje další RAF; ztráta Canvas kontextu pozastaví simulaci a obnovení znovu inicializuje kontext.
+- [x] Manuální soak test: přibližně 15 minut hraní, postup do cca 10. úrovně a úspěšný návrat do menu (ověřeno uživatelem 14. 11. 2026).
+- [ ] Automatizovat stejný dlouhý běh a ověřit resize/orientaci, background/foreground, pauzu/resume a boss/endgame zátěž.
+- [ ] Doplnit renderer regresní testy a opravit browser E2E hlavního průchodu.
+- [ ] Opravit 8 selhávajících testů `grok-pwa-plugin.test.mjs`, které se nově odhalily po opravě testovacího globu; ověřit úplný lint a odstranit existující varování hooků.
 - Rozdělit obrazovku, životní cyklus a renderer na jasně vlastněné moduly až po charakterizačních testech; bez plošného přepisu.
 
 **Hotovo, když:** 15min browser soak test projde bez ztráty obrazu, runtime error, duplicitních RAF smyček či nekontrolovaného růstu paměti; dev i produkční smoke projdou desktopem i mobilem; všechna release gate z engineering-standards.md jsou zelená.

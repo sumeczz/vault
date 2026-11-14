@@ -291,3 +291,12 @@
 - Kamera má malý look-ahead podle směru míření; shake je deterministický kosmetický signál a neodebírá hodnoty z combat RNG.
 - Přidány tři regresní testy: bounds, smoothing/NaN a přechody do šesté místnosti.
 - Ověřeno: typecheck PASS, 120/120 herních testů PASS, 55/55 app-data/auth testů PASS, ESLint změněných souborů PASS, produkční build PASS. Browser render smoke je v ověřování; 15min soak test zůstává otevřený.
+
+
+## 2026-11-14 — Stabilita Canvas a testovací pipeline
+
+- Herní RAF smyčka zachytává neočekávanou výjimku jednoho snímku a pokračuje v dalších snímcích; chyba se zaznamená do konzole.
+- Při ztrátě Canvas kontextu se pozastaví simulace; po obnovení se znovu získá 2D kontext a obnoví rozměry/transformace.
+- Resize ignoruje nulové/neplatné rozměry a mění backing store pouze při skutečné změně pixelových rozměrů.
+- `npm run test` nyní explicitně spouští devět skriptových testovacích souborů; dřívější glob na Windows hlásil 0 testů.
+- Uživatelský manuální soak: cca 15 minut hraní, postup do cca 10. úrovně a návrat do menu — PASS. Automatizovaný soak zůstává otevřený.

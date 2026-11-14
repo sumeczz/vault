@@ -25,7 +25,7 @@ Závislosti tečou jedním směrem: UI → vstup/snapshot → simulace; renderer
 2. Žádná skrytá globální mutace. Sdílený stav musí být explicitní a jeho životní cyklus popsaný.
 3. Žádné vedlejší účinky v rendereru. Stejný stav + stejné rozměry = stejný obraz; náhodnost pro vizuál musí být deterministická nebo předpočítaná mimo render pass.
 4. Žádný přímý zápis do Canvas rozměrů mimo centrální resize funkci. Změna `canvas.width/height` resetuje kontext včetně transformací a stylů.
-5. Každý render frame začíná definovaným stavem kontextu a končí vyváženým `save/restore`. Výjimka v kreslení nesmí zastavit další snímky.
+5. Každý render frame začíná definovaným stavem kontextu a končí vyváženým `save/restore`. Výjimka v kreslení nesmí zastavit další snímky; RAF musí být naplánován i po zachycené chybě. Při `contextlost` se pozastaví simulace a při `contextrestored` se obnoví kontext a resize transformace.
 6. Každý vstup má normalizovaný kontrakt. Klávesnice, myš, gamepad a dotyk nesmí vytvářet paralelní herní logiku.
 7. Čas simulace a čas UI jsou oddělené. Delta time musí být omezené po návratu z pozadí; pauza nesmí posouvat simulaci.
 8. Náhodnost herních výsledků používá seedované RNG. `Math.random()` se nesmí používat pro loot, boj, spawn ani výsledek testovatelný hráčem.
